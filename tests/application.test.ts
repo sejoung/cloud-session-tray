@@ -78,6 +78,15 @@ describe("AWS profile imports", () => {
     mount(api);
     await openEditor();
     expect(field("device").value).toBe("");
+    const button = element<HTMLButtonElement>(document, "[data-device-lookup]");
+    const source = field("source");
+    source.value = "";
+    source.dispatchEvent(new Event("change", { bubbles: true }));
+    expect(button.disabled).toBe(true);
+    expect(element(document, "#mfa-device-status").textContent).toBe("원본 프로필을 먼저 선택하세요.");
+    source.value = "default";
+    source.dispatchEvent(new Event("change", { bubbles: true }));
+    expect(button.disabled).toBe(false);
     await click("[data-device-lookup]");
     await vi.waitFor(() => expect(field("device").value).toBe("SERIAL01234"));
     expect(api.mfaDevices).toHaveBeenCalledExactlyOnceWith("default");

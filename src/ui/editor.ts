@@ -46,9 +46,9 @@ function iamFields(items: Profile[], defaults: Defaults): string {
       <input name="device" required maxlength="256" spellcheck="false" value="${escape(device)}" />
     </label>
     <div class="mfa-lookup">
-      <button type="button" class="button subtle" data-device-lookup>MFA 장치 찾기</button>
+      <button type="button" class="button" data-device-lookup aria-describedby="mfa-device-status">MFA 장치 찾기</button>
       <select data-device-options aria-label="조회한 MFA 장치" hidden></select>
-      <p class="muted" data-device-status role="status"></p>
+      <p id="mfa-device-status" class="muted" data-device-status role="status"></p>
     </div>
     <label class="field">세션 기간 (초, 선택)
       <input name="duration" type="number" min="900" max="129600" step="1" placeholder="AWS CLI 기본값"

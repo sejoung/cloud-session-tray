@@ -16,7 +16,7 @@ export function bindMfaLookup(form: HTMLFormElement, source: HTMLSelectElement, 
 
   function reset(): void {
     revision++;
-    status.textContent = "";
+    status.textContent = source.value ? "" : "원본 프로필을 먼저 선택하세요.";
     button.disabled = !source.value;
     clearOptions();
   }

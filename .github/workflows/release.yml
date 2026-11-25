@@ -1,0 +1,96 @@
+name: Release desktop installers
+
+on:
+  push:
+    tags: ['v[0-9]*.[0-9]*.[0-9]*']
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: ${{ matrix.name }}
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 50
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: macOS Universal
+            runner: macos-15-intel
+            target: universal-apple-darwin
+            bundle: dmg
+            extension: dmg
+            artifact: macos-universal
+          - name: Windows x64
+            runner: windows-2025
+            target: x86_64-pc-windows-msvc
+            bundle: nsis
+            extension: exe
+            artifact: windows-x64
+
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+          cache: npm
+      - name: Verify release version
+        shell: bash
+        run: npm run version:check -- "$GITHUB_REF_NAME"
+      - name: Install both macOS Rust targets
+        if: runner.os == 'macOS'
+        run: rustup target add aarch64-apple-darwin x86_64-apple-darwin
+      - run: npm ci
+      - name: Build installer
+        run: npm run tauri build -- --ci --target ${{ matrix.target }} --bundles ${{ matrix.bundle }} -- --locked
+      - name: Verify Universal executable
+        if: runner.os == 'macOS'
+        run: lipo -verify_arch arm64 x86_64 src-tauri/target/universal-apple-darwin/release/cloud-session-tray
+      - uses: actions/upload-artifact@v6
+        with:
+          name: ${{ matrix.artifact }}
+          path: src-tauri/target/${{ matrix.target }}/release/bundle/${{ matrix.bundle }}/*.${{ matrix.extension }}
+          if-no-files-found: error
+          overwrite: true
+
+  publish:
+    name: Publish GitHub Release
+    needs: build
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v7
+        with:
+          path: installers
+      - name: Publish both installers
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          shopt -s nullglob
+          macos=(installers/macos-universal/*.dmg)
+          windows=(installers/windows-x64/*.exe)
+          if (( ${#macos[@]} != 1 || ${#windows[@]} != 1 )); then
+            echo 'Expected one macOS DMG and one Windows EXE.' >&2
+            exit 1
+          fi
+          if draft=$(gh release view "$GITHUB_REF_NAME" --json isDraft --jq .isDraft); then
+            if [[ "$draft" == false ]]; then
+              gh release view "$GITHUB_REF_NAME" --json url --jq .url
+              exit 0
+            fi
+          else
+            gh release create "$GITHUB_REF_NAME" --verify-tag --generate-notes --draft
+          fi
+          gh release upload "$GITHUB_REF_NAME" "${macos[0]}" "${windows[0]}" --clobber
+          gh release edit "$GITHUB_REF_NAME" --draft=false
