@@ -101,10 +101,32 @@ jobs:
     name: Publish GitHub Release
     needs: build
     runs-on: ubuntu-24.04
-    timeout-minutes: 10
+    timeout-minutes: 55
     permissions:
+      actions: read
       contents: write
     steps:
+      - name: Wait for CI on the release commit
+        timeout-minutes: 45
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          echo "Checking main CI for $GITHUB_SHA"
+          while true; do
+            result=$(gh api --method GET "repos/$GITHUB_REPOSITORY/actions/workflows/ci.yml/runs" \
+              -f branch=main -f head_sha="$GITHUB_SHA" --jq '
+                [.workflow_runs[] | select(.event == "push" or .event == "workflow_dispatch")] |
+                if any(.[]; .conclusion == "success") then "success"
+                elif any(.[]; .status != "completed") then "pending"
+                elif length == 0 then "missing"
+                else .[0].conclusion end')
+            case "$result" in
+              success) break ;;
+              pending) sleep 15 ;;
+              *) echo "Main CI for $GITHUB_SHA is $result. A successful CI run is required." >&2; exit 1 ;;
+            esac
+          done
       - uses: actions/download-artifact@v7
         with:
           pattern: '*-installer'

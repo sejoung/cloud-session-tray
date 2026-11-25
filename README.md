@@ -55,14 +55,14 @@ npm run build
 npm run tauri build
 ```
 
-The lint suite limits source, tests, and config files to 400 lines each. ESLint, dependency-cruiser, and Rust architecture tests check lint rules, dependency boundaries, and cycles. The suite also runs jscpd, rustfmt, and Clippy. Tests use temporary files and test backends in place of live AWS credentials.
+The lint suite limits source, tests, and config files to 400 lines each. It runs ESLint, dependency-cruiser, jscpd, rustfmt, and Clippy. Dependency-cruiser checks frontend dependencies, and the Rust test suite checks Rust module boundaries and cycles. Tests use temporary files and test backends in place of live AWS credentials.
 
 Before distributing a build, smoke-test CLI discovery and installation, IAM renewal and invalid MFA codes, SSO login and cancellation, and tray actions and expiration notifications on each platform. For IAM renewal, verify that the configured destination profile is the one your tools use.
 
 ## Releasing
 
 - **CI** runs on pull requests and pushes to `main`. It checks versions, lints, tests, and builds the frontend on macOS and Windows.
-- **Release desktop installers** runs on `vMAJOR.MINOR.PATCH` tags. It validates the tag and publishes a GitHub Release after the macOS Apple Silicon DMG and Windows x64 installer both build successfully.
+- **Release desktop installers** runs on `vMAJOR.MINOR.PATCH` tags. It validates the tag and publishes a GitHub Release once both installers build and CI passes for the same commit on `main`.
 
 Commit your changes on `main`, then run one of the following in a terminal. Tauri reads the app version from `package.json`.
 
@@ -73,7 +73,7 @@ npm run release -- major   # Breaking changes
 npm run release -- current # First release or a version already set
 ```
 
-The command synchronizes the npm and Cargo versions, runs lint, tests, and the frontend build, commits a version bump, and creates a local tag. It shows the tag and commit, then waits for `y` before pushing `main` and the tag together. If you defer the push or the push fails, use `npm run release -- resume v0.1.1` with the prepared tag.
+The command synchronizes and checks the npm and Cargo versions, commits a version bump, and creates a local tag. It shows the tag and commit, then waits for `y` before pushing `main` and the tag together. GitHub CI runs lint, tests, and the frontend build while the release workflow builds the installers. If you defer the push or the push fails, use `npm run release -- resume v0.1.1` with the prepared tag.
 
 GitHub Actions keeps intermediate installer artifacts for three days. Published installers remain available on GitHub Releases. Retry transient failures in Actions and rerun the build jobs if their artifacts have expired. Use a new version for code changes or replacements for published installers.
 

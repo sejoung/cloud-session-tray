@@ -59,7 +59,7 @@ npm run tauri build
 ## 릴리즈
 
 - **CI**는 `main`에 푸시하거나 PR을 열 때 macOS와 Windows에서 버전 일치, 린트, 테스트, 프런트엔드 빌드를 확인합니다.
-- **Release desktop installers**는 `vMAJOR.MINOR.PATCH` 태그를 푸시할 때 실행됩니다. 태그와 앱 버전을 대조하고 Apple Silicon용 macOS DMG와 Windows x64 설치 파일이 모두 빌드되면 GitHub Release에 게시합니다.
+- **Release desktop installers**는 `vMAJOR.MINOR.PATCH` 태그를 푸시할 때 실행됩니다. 태그와 앱 버전을 대조하고 Apple Silicon용 macOS DMG와 Windows x64 설치 파일이 모두 빌드되고 `main`의 같은 커밋에서 CI가 통과하면 GitHub Release에 게시합니다.
 
 변경 사항을 모두 커밋한 `main`에서 다음 명령 중 하나를 실행합니다. 앱 버전은 `package.json`에서 관리하며 Tauri가 같은 값을 읽습니다.
 
@@ -70,7 +70,7 @@ npm run release -- major   # 호환성이 깨지는 변경
 npm run release -- current # 현재 버전으로 첫 릴리즈 또는 사전 갱신한 버전 배포
 ```
 
-릴리즈 명령은 npm과 Cargo의 버전을 맞추고 린트·테스트·프런트엔드 빌드를 통과하면 버전 변경을 커밋하고 로컬 태그를 만듭니다. 표시된 태그와 커밋을 확인하고 `y`를 입력하면 `main`과 태그를 함께 푸시합니다. 미뤘거나 푸시에 실패했으면 `npm run release -- resume v0.1.1`처럼 준비한 태그로 다시 실행할 수 있습니다.
+릴리즈 명령은 npm과 Cargo의 버전을 맞춰 확인한 뒤, 버전 변경을 커밋하고 로컬 태그를 만듭니다. 표시된 태그와 커밋을 확인하고 `y`를 입력하면 `main`과 태그를 함께 푸시합니다. GitHub CI는 설치 파일을 만드는 동안 린트·테스트·프런트엔드 빌드를 실행합니다. 푸시를 미뤘거나 실패했으면 `npm run release -- resume v0.1.1`처럼 준비한 태그로 다시 실행할 수 있습니다.
 
 GitHub Actions의 중간 설치 파일은 3일간 보관합니다. 게시한 설치 파일은 GitHub Releases에서 계속 받을 수 있습니다. 일시적인 오류는 Actions에서 해당 작업을 다시 실행하고, 아티팩트가 만료되면 빌드부터 다시 실행합니다. 소스를 수정하거나 게시한 설치 파일을 교체할 때는 새 버전을 발행합니다.
 

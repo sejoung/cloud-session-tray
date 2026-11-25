@@ -33,13 +33,6 @@ function requireCleanMain() {
   }
 }
 
-function verify() {
-  npm("version:check");
-  npm("lint");
-  npm("test");
-  npm("build");
-}
-
 function releaseVersion(current, mode) {
   if (mode === "current") return current;
   const bump = bumps[mode];
@@ -58,15 +51,14 @@ function prepareTag(mode) {
     throw new Error(`${tag} already exists. To retry a prepared release, use npm run release -- resume ${tag}.`);
   }
 
-  try {
-    if (next !== version) npm("version:set", next);
-    verify();
-  } catch (error) {
-    if (next !== version) npm("version:set", version);
-    throw error;
-  }
-
   if (next !== version) {
+    try {
+      npm("version:set", next);
+      npm("version:check", tag);
+    } catch (error) {
+      npm("version:set", version);
+      throw error;
+    }
     run("git", ["commit", "--only", "-m", `chore: release ${tag}`, "--", ...versionFiles]);
   }
   requireCleanMain();
@@ -101,7 +93,6 @@ async function main([mode, preparedTag, ...extra]) {
   if (resume) {
     npm("version:check", preparedTag);
     if (tagCommit(preparedTag) !== commitBeforeRelease) throw new Error(`${preparedTag} must point to HEAD on main.`);
-    verify();
   }
   const tag = resume ? preparedTag : prepareTag(mode);
   const commit = git("rev-parse", "HEAD");

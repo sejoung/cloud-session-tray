@@ -13,7 +13,7 @@
     "lint": "npm run lint:lines && npm run lint:web && npm run lint:architecture && npm run lint:duplicates && npm run lint:rust",
     "lint:lines": "node scripts/check-lines.mjs",
     "lint:web": "eslint .",
-    "lint:architecture": "depcruise --config .dependency-cruiser.cjs src && cargo test --locked --manifest-path src-tauri/Cargo.toml --test architecture",
+    "lint:architecture": "depcruise --config .dependency-cruiser.cjs src",
     "lint:duplicates": "jscpd --config .jscpd.json",
     "lint:rust": "cargo fmt --manifest-path src-tauri/Cargo.toml --check && cargo clippy --locked --manifest-path src-tauri/Cargo.toml --all-targets -- -D warnings",
     "test": "npm run test:web && npm run test:rust",
