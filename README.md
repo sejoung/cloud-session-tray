@@ -72,7 +72,7 @@ npm run release -- current # First release or a version already set
 
 The command synchronizes the npm and Cargo versions, runs lint, tests, and the frontend build, commits a version bump, and creates a local tag. It shows the tag and commit, then waits for `y` before pushing `main` and the tag together. If you defer the push or the push fails, use `npm run release -- resume v0.1.1` with the prepared tag.
 
-Retry transient build failures in GitHub Actions. Use a new version for code changes or replacements for published installers.
+GitHub Actions keeps intermediate installer artifacts for three days. Published installers remain available on GitHub Releases. Retry transient failures in Actions and rerun the build jobs if their artifacts have expired. Use a new version for code changes or replacements for published installers.
 
 ## License
 

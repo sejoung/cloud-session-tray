@@ -58,6 +58,7 @@ jobs:
           name: ${{ matrix.artifact }}
           path: src-tauri/target/${{ matrix.target }}/release/bundle/${{ matrix.bundle }}/*.${{ matrix.extension }}
           if-no-files-found: error
+          retention-days: 3
           overwrite: true
 
   publish:
