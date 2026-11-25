@@ -1,8 +1,17 @@
 name: Release desktop installers
+run-name: ${{ github.ref_type == 'tag' && format('Release {0}', github.ref_name) || 'Warm release Rust cache' }}
 
 on:
   push:
+    branches: [main]
     tags: ['v[0-9]*.[0-9]*.[0-9]*']
+    paths:
+      - .github/workflows/release.yml
+      - src-tauri/Cargo.toml
+      - src-tauri/Cargo.lock
+      - 'rust-toolchain*'
+      - '.cargo/config*'
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -13,6 +22,7 @@ concurrency:
 
 jobs:
   build:
+    if: github.event_name == 'push' || github.ref == 'refs/heads/main'
     name: ${{ matrix.name }}
     runs-on: ${{ matrix.runner }}
     timeout-minutes: 35
@@ -44,23 +54,41 @@ jobs:
           node-version: '24'
           cache: npm
       - name: Verify release version
+        if: github.ref_type == 'tag'
         shell: bash
         run: npm run version:check -- "$GITHUB_REF_NAME"
-      - name: Install Apple Silicon Rust target
-        if: runner.os == 'macOS'
-        run: rustup target add "$TARGET"
-      - run: npm ci
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+      - name: Rust cache
+        id: rust-cache
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri
+          key: ${{ matrix.target }}
+          # Release tags can restore main's cache, but cannot share caches with each other.
+          save-if: ${{ github.ref == 'refs/heads/main' }}
+      - name: Install npm dependencies
+        if: github.ref_type == 'tag' || steps.rust-cache.outputs.cache-hit != 'true'
+        run: npm ci
+      - name: Warm release Rust cache
+        if: github.ref == 'refs/heads/main' && steps.rust-cache.outputs.cache-hit != 'true'
+        shell: bash
+        run: npm run tauri build -- --ci --target "$TARGET" --no-bundle -- --locked
       - name: Build installer
+        if: github.ref_type == 'tag'
         shell: bash
         run: npm run tauri build -- --ci --target "$TARGET" --bundles "$BUNDLE" -- --locked
       - name: Verify Apple Silicon executable
-        if: runner.os == 'macOS'
+        if: github.ref_type == 'tag' && runner.os == 'macOS'
         shell: bash
         run: |
           executable="src-tauri/target/$TARGET/release/cloud-session-tray"
           architectures=$(lipo "$executable" -archs)
           test "$architectures" = arm64
       - uses: actions/upload-artifact@v6
+        if: github.ref_type == 'tag'
         with:
           name: ${{ matrix.artifact }}-installer
           path: src-tauri/target/${{ matrix.target }}/release/bundle/${{ matrix.bundle }}/*.${{ matrix.extension }}
@@ -69,6 +97,7 @@ jobs:
           overwrite: true
 
   publish:
+    if: github.event_name == 'push' && github.ref_type == 'tag'
     name: Publish GitHub Release
     needs: build
     runs-on: ubuntu-24.04
