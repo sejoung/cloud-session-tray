@@ -58,8 +58,8 @@ npm run tauri build
 
 ## 릴리즈
 
-- **CI**는 `main`에 푸시하거나 PR을 열 때 macOS와 Windows에서 버전 일치, 린트, 테스트, 프런트엔드 빌드를 확인합니다.
-- **Release desktop installers**는 `vMAJOR.MINOR.PATCH` 태그를 푸시할 때 실행됩니다. 태그와 앱 버전을 대조하고 Apple Silicon용 macOS DMG와 Windows x64 설치 파일이 모두 빌드되고 `main`의 같은 커밋에서 CI가 통과하면 GitHub Release에 게시합니다.
+- **CI**는 `main`에 푸시하거나 PR을 열 때 Ubuntu에서 버전 일치, 린트, 테스트, 프런트엔드 빌드를 확인합니다.
+- **Release desktop installers**는 `vMAJOR.MINOR.PATCH` 태그를 푸시할 때 실행됩니다. 태그와 앱 버전을 대조하고 Apple Silicon용 macOS DMG와 Windows x64 설치 파일을 빌드합니다. `main`의 같은 커밋에서 CI가 통과하면 GitHub Release에 게시합니다. 릴리즈용 Rust 캐시를 준비하려면 `main`에서 이 워크플로를 수동으로 실행할 수 있습니다.
 
 변경 사항을 모두 커밋한 `main`에서 다음 명령 중 하나를 실행합니다. 앱 버전은 `package.json`에서 관리하며 Tauri가 같은 값을 읽습니다.
 

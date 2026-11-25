@@ -15,17 +15,9 @@ concurrency:
 
 jobs:
   verify:
-    name: ${{ matrix.name }}
-    runs-on: ${{ matrix.runner }}
+    name: Ubuntu
+    runs-on: ubuntu-24.04
     timeout-minutes: 45
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - name: macOS
-            runner: macos-15-intel
-          - name: Windows x64
-            runner: windows-2025
 
     steps:
       - uses: actions/checkout@v6
@@ -37,6 +29,14 @@ jobs:
           cache: npm
       - run: npm run version:check
       - run: npm ci
+      - name: Install Tauri system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            libwebkit2gtk-4.1-dev libayatana-appindicator3-dev libxdo-dev libssl-dev librsvg2-dev
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy, rustfmt
       - name: Rust cache
         uses: Swatinem/rust-cache@v2
         with:

@@ -3,14 +3,7 @@ run-name: ${{ github.ref_type == 'tag' && format('Release {0}', github.ref_name)
 
 on:
   push:
-    branches: [main]
     tags: ['v[0-9]*.[0-9]*.[0-9]*']
-    paths:
-      - .github/workflows/release.yml
-      - src-tauri/Cargo.toml
-      - src-tauri/Cargo.lock
-      - 'rust-toolchain*'
-      - '.cargo/config*'
   workflow_dispatch:
 
 permissions:

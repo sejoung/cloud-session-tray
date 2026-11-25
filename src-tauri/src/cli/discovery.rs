@@ -100,6 +100,14 @@ pub async fn discover(preferred: Option<&Path>, home: &Path) -> Option<Cli> {
     fallback
 }
 
+#[cfg_attr(
+    not(any(target_os = "macos", windows)),
+    expect(
+        unused_mut,
+        unused_variables,
+        reason = "Only macOS and Windows have additional AWS CLI search paths"
+    )
+)]
 fn candidates(home: &Path) -> Vec<PathBuf> {
     let name = if cfg!(windows) { "aws.exe" } else { "aws" };
     let mut paths: Vec<_> = env::var_os("PATH")

@@ -61,8 +61,8 @@ Before distributing a build, smoke-test CLI discovery and installation, IAM rene
 
 ## Releasing
 
-- **CI** runs on pull requests and pushes to `main`. It checks versions, lints, tests, and builds the frontend on macOS and Windows.
-- **Release desktop installers** runs on `vMAJOR.MINOR.PATCH` tags. It validates the tag and publishes a GitHub Release once both installers build and CI passes for the same commit on `main`.
+- **CI** runs on Ubuntu for pull requests and pushes to `main`. It checks versions, runs lint and tests, and builds the frontend.
+- **Release desktop installers** runs on `vMAJOR.MINOR.PATCH` tags. It validates the tag, builds the macOS and Windows installers, and publishes a GitHub Release after CI passes for the same commit on `main`. You can run the workflow manually on `main` to prepare the release Rust cache.
 
 Commit your changes on `main`, then run one of the following in a terminal. Tauri reads the app version from `package.json`.
 
