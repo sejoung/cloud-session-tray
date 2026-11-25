@@ -15,24 +15,26 @@ jobs:
   build:
     name: ${{ matrix.name }}
     runs-on: ${{ matrix.runner }}
-    timeout-minutes: 50
+    timeout-minutes: 35
     strategy:
       fail-fast: false
       matrix:
         include:
-          - name: macOS Universal
+          - name: macOS Apple Silicon
             runner: macos-15-intel
-            target: universal-apple-darwin
+            target: aarch64-apple-darwin
             bundle: dmg
             extension: dmg
-            artifact: macos-universal
+            artifact: macos-apple-silicon
           - name: Windows x64
             runner: windows-2025
             target: x86_64-pc-windows-msvc
             bundle: nsis
             extension: exe
             artifact: windows-x64
-
+    env:
+      TARGET: ${{ matrix.target }}
+      BUNDLE: ${{ matrix.bundle }}
     steps:
       - uses: actions/checkout@v6
         with:
@@ -44,18 +46,23 @@ jobs:
       - name: Verify release version
         shell: bash
         run: npm run version:check -- "$GITHUB_REF_NAME"
-      - name: Install both macOS Rust targets
+      - name: Install Apple Silicon Rust target
         if: runner.os == 'macOS'
-        run: rustup target add aarch64-apple-darwin x86_64-apple-darwin
+        run: rustup target add "$TARGET"
       - run: npm ci
       - name: Build installer
-        run: npm run tauri build -- --ci --target ${{ matrix.target }} --bundles ${{ matrix.bundle }} -- --locked
-      - name: Verify Universal executable
+        shell: bash
+        run: npm run tauri build -- --ci --target "$TARGET" --bundles "$BUNDLE" -- --locked
+      - name: Verify Apple Silicon executable
         if: runner.os == 'macOS'
-        run: lipo -verify_arch arm64 x86_64 src-tauri/target/universal-apple-darwin/release/cloud-session-tray
+        shell: bash
+        run: |
+          executable="src-tauri/target/$TARGET/release/cloud-session-tray"
+          architectures=$(lipo "$executable" -archs)
+          test "$architectures" = arm64
       - uses: actions/upload-artifact@v6
         with:
-          name: ${{ matrix.artifact }}
+          name: ${{ matrix.artifact }}-installer
           path: src-tauri/target/${{ matrix.target }}/release/bundle/${{ matrix.bundle }}/*.${{ matrix.extension }}
           if-no-files-found: error
           retention-days: 3
@@ -71,6 +78,7 @@ jobs:
     steps:
       - uses: actions/download-artifact@v7
         with:
+          pattern: '*-installer'
           path: installers
       - name: Publish both installers
         shell: bash
@@ -79,8 +87,8 @@ jobs:
           GH_REPO: ${{ github.repository }}
         run: |
           shopt -s nullglob
-          macos=(installers/macos-universal/*.dmg)
-          windows=(installers/windows-x64/*.exe)
+          macos=(installers/macos-apple-silicon-installer/*.dmg)
+          windows=(installers/windows-x64-installer/*.exe)
           if (( ${#macos[@]} != 1 || ${#windows[@]} != 1 )); then
             echo 'Expected one macOS DMG and one Windows EXE.' >&2
             exit 1

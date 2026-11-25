@@ -10,7 +10,10 @@ macOS 메뉴 막대와 Windows 시스템 트레이에서 AWS 프로필을 확인
 
 ## 설치
 
-[최신 릴리즈](https://github.com/sejoung/cloud-session-tray/releases/latest)에서 Apple Silicon과 Intel을 지원하는 macOS Universal DMG 또는 Windows x64 NSIS 설치 파일을 내려받습니다. macOS 앱은 애드혹 서명을 사용하며 공증되지 않았습니다. Windows 설치 파일에는 코드 서명이 없습니다.
+- **macOS** — Apple Silicon(`arm64`) 전용입니다. DMG를 내려받으세요. 앱은 애드혹 서명을 사용하며 공증되지 않았습니다.
+- **Windows** — x64를 지원합니다. NSIS 설치 파일을 내려받으세요. 설치 파일에는 코드 서명이 없습니다.
+
+[최신 릴리즈](https://github.com/sejoung/cloud-session-tray/releases/latest)
 
 ## 시작하기
 
@@ -56,7 +59,7 @@ npm run tauri build
 ## 릴리즈
 
 - **CI**는 `main`에 푸시하거나 PR을 열 때 macOS와 Windows에서 버전 일치, 린트, 테스트, 프런트엔드 빌드를 확인합니다.
-- **Release desktop installers**는 `vMAJOR.MINOR.PATCH` 태그를 푸시할 때 실행됩니다. 태그와 앱 버전을 대조하고 두 설치 파일이 모두 빌드되면 GitHub Release에 게시합니다.
+- **Release desktop installers**는 `vMAJOR.MINOR.PATCH` 태그를 푸시할 때 실행됩니다. 태그와 앱 버전을 대조하고 Apple Silicon용 macOS DMG와 Windows x64 설치 파일이 모두 빌드되면 GitHub Release에 게시합니다.
 
 변경 사항을 모두 커밋한 `main`에서 다음 명령 중 하나를 실행합니다. 앱 버전은 `package.json`에서 관리하며 Tauri가 같은 값을 읽습니다.
 

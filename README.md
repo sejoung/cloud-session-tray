@@ -10,7 +10,10 @@ Cloud Session Tray lets you check and renew AWS CLI sessions from the macOS menu
 
 ## Installation
 
-Download the macOS Universal DMG for Apple Silicon or Intel, or the Windows x64 NSIS installer. The macOS app is ad hoc signed and has no Apple notarization. The Windows installer is unsigned. [Latest release](https://github.com/sejoung/cloud-session-tray/releases/latest)
+- **macOS** — Apple Silicon (`arm64`) only. Download the DMG. The app is ad hoc signed and has no Apple notarization.
+- **Windows** — x64. Download the NSIS installer. The installer is unsigned.
+
+[Latest release](https://github.com/sejoung/cloud-session-tray/releases/latest)
 
 ## Getting started
 
@@ -59,7 +62,7 @@ Before distributing a build, smoke-test CLI discovery and installation, IAM rene
 ## Releasing
 
 - **CI** runs on pull requests and pushes to `main`. It checks versions, lints, tests, and builds the frontend on macOS and Windows.
-- **Release desktop installers** runs on `vMAJOR.MINOR.PATCH` tags. It validates the tag and publishes a GitHub Release after the macOS Universal DMG and Windows x64 installer both build successfully.
+- **Release desktop installers** runs on `vMAJOR.MINOR.PATCH` tags. It validates the tag and publishes a GitHub Release after the macOS Apple Silicon DMG and Windows x64 installer both build successfully.
 
 Commit your changes on `main`, then run one of the following in a terminal. Tauri reads the app version from `package.json`.
 
