@@ -1,0 +1,10 @@
+{
+  "path": ["src", "src-tauri/src"],
+  "format": ["typescript", "javascript", "rust", "css"],
+  "ignore": ["**/tests.rs", "**/*_tests.rs"],
+  "minLines": 10,
+  "minTokens": 80,
+  "threshold": 0,
+  "reporters": ["console"],
+  "noTips": true
+}
