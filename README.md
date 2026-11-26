@@ -67,13 +67,14 @@ Before distributing a build, smoke-test CLI discovery and installation, IAM rene
 Commit your changes on `main`, then run one of the following in a terminal. Tauri reads the app version from `package.json`.
 
 ```sh
-npm run release -- patch   # Backward-compatible fixes
-npm run release -- minor   # Backward-compatible features
-npm run release -- major   # Breaking changes
-npm run release -- current # First release or a version already set
+npm run release:patch               # Backward-compatible fixes
+npm run release:minor               # Backward-compatible features
+npm run release:major               # Breaking changes
+npm run release:current             # Release the current version
+npm run release:resume -- v0.1.1    # Retry pushing a prepared tag
 ```
 
-The command synchronizes and checks the npm and Cargo versions, commits a version bump, and creates a local tag. It shows the tag and commit, then waits for `y` before pushing `main` and the tag together. GitHub CI runs lint, tests, and the frontend build while the release workflow builds the installers. If you defer the push or the push fails, use `npm run release -- resume v0.1.1` with the prepared tag.
+Run `npm run release` to list the commands. The release command synchronizes and checks the npm and Cargo versions, commits a version bump, and creates a local tag. It shows the tag and commit, then waits for `y` before pushing `main` and the tag together. GitHub CI runs lint, tests, and the frontend build while the release workflow builds the installers. If you defer the push or the push fails, pass the prepared tag to `release:resume`.
 
 GitHub Actions keeps intermediate installer artifacts for three days. Published installers remain available on GitHub Releases. Retry transient failures in Actions and rerun the build jobs if their artifacts have expired. Use a new version for code changes or replacements for published installers.
 

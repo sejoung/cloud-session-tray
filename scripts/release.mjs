@@ -5,6 +5,11 @@ import { createInterface } from "node:readline/promises";
 const root = new URL("../", import.meta.url);
 const versionFiles = ["package.json", "package-lock.json", "src-tauri/Cargo.toml", "src-tauri/Cargo.lock"];
 const bumps = { major: 0, minor: 1, patch: 2 };
+const usage = `npm run release:patch                         Backward-compatible fixes
+npm run release:minor                         Backward-compatible features
+npm run release:major                         Breaking changes
+npm run release:current                       Release the current version
+npm run release:resume -- vMAJOR.MINOR.PATCH  Push a prepared release`;
 
 function run(program, args, capture = false) {
   const result = spawnSync(program, args, {
@@ -23,7 +28,7 @@ function git(...args) {
 
 function npm(script, ...args) {
   const npmCli = process.env.npm_execpath;
-  if (!npmCli) throw new Error("Start this command with npm run release.");
+  if (!npmCli) throw new Error(`Start the release through npm.\n\n${usage}`);
   run(process.execPath, [npmCli, "run", script, "--", ...args]);
 }
 
@@ -48,7 +53,7 @@ function prepareTag(mode) {
   const next = releaseVersion(version, mode);
   const tag = `v${next}`;
   if (git("tag", "--list", tag)) {
-    throw new Error(`${tag} already exists. To retry a prepared release, use npm run release -- resume ${tag}.`);
+    throw new Error(`${tag} already exists. To retry a prepared release, use npm run release:resume -- ${tag}.`);
   }
 
   if (next !== version) {
@@ -80,9 +85,13 @@ async function confirmPush(tag) {
 }
 
 async function main([mode, preparedTag, ...extra]) {
+  if (mode === undefined || (mode === "--help" && preparedTag === undefined)) {
+    process.stdout.write(`${usage}\n`);
+    return;
+  }
   const resume = mode === "resume";
   if (extra.length || (resume ? !preparedTag : preparedTag || (mode !== "current" && !Object.hasOwn(bumps, mode)))) {
-    throw new Error("Use npm run release -- major|minor|patch|current or npm run release -- resume vMAJOR.MINOR.PATCH");
+    throw new Error(`Choose a release command.\n\n${usage}`);
   }
   if (!process.stdin.isTTY) throw new Error("Run this command in a terminal to confirm the push.");
   requireCleanMain();
@@ -98,7 +107,7 @@ async function main([mode, preparedTag, ...extra]) {
   const commit = git("rev-parse", "HEAD");
   process.stdout.write(`${tag} → ${commit}\n`);
   if (!await confirmPush(tag)) {
-    process.stdout.write(`Kept ${tag} locally. Resume with npm run release -- resume ${tag}.\n`);
+    process.stdout.write(`Kept ${tag} locally. Resume with npm run release:resume -- ${tag}.\n`);
     return;
   }
   requireCleanMain();
