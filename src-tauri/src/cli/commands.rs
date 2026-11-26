@@ -158,16 +158,42 @@ pub async fn configure_iam(
     cli: &Cli,
     files: &Files,
     profile: IamRegistration,
+    output_format: &str,
 ) -> Result<(), Issue> {
     let mut arguments = args(&["configure", "--no-cli-pager"]);
     arguments.push(profile_option("profile", &profile.name));
+    // Write settings first so a failed config write leaves no keys and registration can be retried.
+    if !profile.region.is_empty() || !output_format.is_empty() {
+        let settings = Interaction::configure(
+            Zeroizing::default(),
+            Zeroizing::default(),
+            profile.region,
+            output_format,
+        );
+        run_configure(cli, files, &arguments, settings).await?;
+    }
+    let credentials = Interaction::configure(
+        profile.access_key_id,
+        profile.secret_access_key,
+        String::new(),
+        "",
+    );
+    run_configure(cli, files, &arguments, credentials).await
+}
+
+async fn run_configure(
+    cli: &Cli,
+    files: &Files,
+    arguments: &[OsString],
+    input: Interaction,
+) -> Result<(), Issue> {
     let output = run(
         &cli.path,
         Some(files),
-        &arguments,
+        arguments,
         Duration::from_secs(25),
         &Cancel::new(),
-        Some(Interaction::configure(profile)),
+        Some(input),
     )
     .await?;
     if !output.status.success() {

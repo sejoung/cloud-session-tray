@@ -1,5 +1,5 @@
 import appIcon from "../../src-tauri/icons/icon.png";
-import { method, profileName, type Dashboard, type Phase, type Session, type Status } from "../domain";
+import { method, profileName, type Dashboard, type Phase, type Profile, type Session, type Status } from "../domain";
 import { date, escape, fact, header, notice } from "./html";
 
 const statusText: Record<Status, string> = {
@@ -19,20 +19,24 @@ function badge(session: Session): string {
   return `<span class="badge ${appearance}"><span class="dot"></span>${text}</span>`;
 }
 
-function onboarding(hasCli: boolean): string {
+function onboarding(hasCli: boolean, profiles: Profile[] | null): string {
+  const hasIam = profiles?.some((profile) => profile.kind === "iamSource");
+  const hasSso = profiles?.some((profile) => profile.kind === "sso");
+  const firstRegistration = hasIam === false && !hasSso;
   const heading = hasCli ? "첫 AWS 프로필 연결" : "AWS CLI 연결";
-  const description = hasCli
-    ? "IAM 장기 키가 등록된 원본 프로필이나 조직의 Identity Center 프로필에서 시작하세요."
-    : "AWS CLI v2를 연결하면 로컬 AWS 프로필을 가져올 수 있습니다.";
+  const description = !hasCli ? "AWS CLI v2를 연결하면 앱에서 AWS 프로필을 등록하고 연결할 수 있습니다."
+    : firstRegistration ? "IAM 액세스 키를 등록하고 MFA 갱신에 사용할 프로필을 설정하세요."
+    : "로컬 IAM 원본 프로필이나 조직의 Identity Center 프로필을 연결하세요.";
+  const actions = hasCli ? `
+    ${hasIam === false ? `<button class="button ${firstRegistration ? "primary" : ""}" data-action="start-iam">IAM 액세스 키 등록</button>` : ""}
+    <button class="button ${firstRegistration ? "" : "primary"}" data-action="add">
+      ${firstRegistration ? "인증 방식 선택" : "프로필 연결"}
+    </button>` : '<button class="button primary" data-page="cli">AWS CLI 확인</button>';
   return `<section class="onboarding">
     <img src="${appIcon}" alt="" width="58" height="58" />
     <h2>${heading}</h2>
     <p>${description}</p>
-    <div class="actions">
-      <button class="button primary" ${hasCli ? 'data-action="add"' : 'data-page="cli"'}>
-        ${hasCli ? "프로필 가져오기" : "AWS CLI 확인"}
-      </button>
-    </div>
+    <div class="actions">${actions}</div>
   </section>`;
 }
 
@@ -90,7 +94,7 @@ function sessionDetail(session: Session, cli: Dashboard["cli"]): string {
   </section>`;
 }
 
-export function sessionsPage(state: Dashboard, session?: Session): string {
+export function sessionsPage(state: Dashboard, profiles: Profile[] | null, session?: Session): string {
   const hasCli = Boolean(state.cli?.v2);
   const add = session
     ? `<button class="button primary" data-action="add" ${hasCli ? "" : "disabled"}>프로필 추가</button>` : "";
@@ -99,7 +103,7 @@ export function sessionsPage(state: Dashboard, session?: Session): string {
     .map((message) => notice(message, true)).join("");
   const body = session
     ? `<div class="session-grid">${sessionList(state.sessions, session)}${sessionDetail(session, state.cli)}</div>`
-    : onboarding(hasCli);
+    : onboarding(hasCli, profiles);
   const actions = `<div class="actions">${add}<button class="button" data-workflow="import">공유 파일 가져오기</button></div>`;
   return header("AWS 세션", "AWS 프로필의 로그인 상태를 확인하고 갱신하세요.", actions) + banners + body;
 }

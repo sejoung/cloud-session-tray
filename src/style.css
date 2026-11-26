@@ -106,6 +106,7 @@ h3 { font-size: 15px; }
 }
 .onboarding h2 { margin-top: 15px; font-size: 23px; }
 .onboarding p { color: var(--muted); margin: 9px 0 22px; max-width: 40ch; }
+.onboarding .actions { justify-content: center; }
 .session-grid { display: grid; grid-template-columns: minmax(180px, .85fr) minmax(0, 1.5fr); gap: 16px; align-items: start; }
 .session-list { overflow: hidden; }
 .session-list h2 {

@@ -171,6 +171,11 @@ impl Profiles {
             .filter(|region| valid_aws_region(region))
     }
 
+    pub fn has_output_format(&self, name: &str) -> bool {
+        self.setting(name, "output")
+            .is_some_and(|format| !format.is_empty())
+    }
+
     pub(super) fn setting(&self, name: &str, key: &str) -> Option<&str> {
         self.credentials
             .get(name)

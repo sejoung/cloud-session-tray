@@ -54,8 +54,13 @@ case "$1 $2" in
     IFS= read -r region || exit 4
     printf 'Default output format [None]: '
     IFS= read -r output || exit 4
-    printf '[%s]\naws_access_key_id=%s\naws_secret_access_key=%s\n' "$profile" "$key" "$secret" >> "$AWS_SHARED_CREDENTIALS_FILE"
-    printf '[profile %s]\nregion=%s\noutput=%s\n' "$profile" "$region" "$output" >> "$AWS_CONFIG_FILE"
+    if [ -n "$key" ]; then
+      printf '[%s]\naws_access_key_id=%s\naws_secret_access_key=%s\n' "$profile" "$key" "$secret" >> "$AWS_SHARED_CREDENTIALS_FILE" || exit 5
+    fi
+    if [ -n "$region$output" ]; then
+      if [ -f "$AWS_CONFIG_FILE.fail-write" ]; then exit 5; fi
+      printf '[profile %s]\nregion=%s\noutput=%s\n' "$profile" "$region" "$output" >> "$AWS_CONFIG_FILE" || exit 5
+    fi
     ;;
   'configure list-profiles') printf 'new-source\n' ;;
   'iam list-mfa-devices')
@@ -262,6 +267,8 @@ async fn registers_an_iam_source_and_lists_only_valid_devices() {
     assert_eq!(profiles[0]["name"], "new-source");
     assert_eq!(profiles[0]["kind"], "iamSource");
     assert_eq!(profiles[0]["region"], "ap-northeast-2");
+    let config = fs::read_to_string(&state.files.config).unwrap();
+    assert!(config.contains("output=json\n"));
     assert_eq!(
         state.mfa_devices("new-source").await.unwrap(),
         ["SERIAL1", "SERIAL2"]
@@ -273,6 +280,26 @@ async fn registers_an_iam_source_and_lists_only_valid_devices() {
     let settings = fs::read_to_string(work.path().join("app/settings.json")).unwrap();
     assert!(!settings.contains("synthetic-secret-for-tests-only"));
     assert!(!profiles.to_string().contains("AKIAEXAMPLE"));
+}
+
+#[tokio::test]
+async fn config_write_failure_leaves_no_keys_and_registration_can_be_retried() {
+    let work = tempfile::tempdir().unwrap();
+    let state = fake_state(&work).await;
+    let write_failure = work.path().join("aws-config.fail-write");
+    fs::write(&write_failure, "").unwrap();
+    let registration = || IamRegistration {
+        name: "new-source".into(),
+        access_key_id: Zeroizing::new("AKIAEXAMPLE000000000".into()),
+        secret_access_key: Zeroizing::new("synthetic-secret-for-tests-only".into()),
+        region: String::new(),
+    };
+
+    let result = state.register_iam(registration()).await;
+    assert!(result.is_err());
+    assert!(!state.files.credentials.exists());
+    fs::remove_file(&write_failure).unwrap();
+    assert!(state.register_iam(registration()).await.is_ok());
 }
 
 #[tokio::test]

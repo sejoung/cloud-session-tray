@@ -14,9 +14,16 @@ impl AppState {
         let cli = self.current_cli()?;
         {
             let _guard = self.aws_files.lock().await;
-            self.files
-                .read()?
-                .validate_registration(&registration.name)?;
+            let name = registration.name.clone();
+            let output_format = {
+                let profiles = self.files.read()?;
+                profiles.validate_registration(&name)?;
+                if profiles.has_output_format(&name) {
+                    ""
+                } else {
+                    "json"
+                }
+            };
             if self
                 .sessions()
                 .iter()
@@ -24,8 +31,7 @@ impl AppState {
             {
                 return Err("이 앱에서 사용 중인 프로필입니다. 다른 이름을 지정해 주세요.".into());
             }
-            let name = registration.name.clone();
-            cli::configure_iam(&cli, &self.files, registration).await
+            cli::configure_iam(&cli, &self.files, registration, output_format).await
                 .map_err(|issue| match issue {
                     cli::Issue::Prompt => "AWS CLI의 프로필 입력 요청을 확인할 수 없습니다. CLI를 업데이트해 주세요.",
                     _ => issue.text(),

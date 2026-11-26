@@ -120,24 +120,57 @@ describe("AWS profile imports", () => {
         expect(input.type).toBe("password");
         expect(input.value).toBe("");
       }
-      return [profile("new-iam", "iamSource")];
+      return [profile("new-iam", "iamSource", { region: "us-gov-west-1" })];
     });
     mount(api);
     await openEditor();
     await click('[data-action="editor-register-iam"]');
     const fields = {
       name: "new-iam", accessKeyId: "AKIAEXAMPLE000000000",
-      secretAccessKey: "synthetic-secret-for-tests-only", region: "ap-northeast-2",
+      secretAccessKey: "synthetic-secret-for-tests-only", region: "us-gov-west-1",
     };
-    for (const [name, value] of Object.entries(fields)) {
-      element<HTMLInputElement>(document, `#registration input[name="${name}"]`).value = value;
+    for (const name of ["name", "accessKeyId", "secretAccessKey"] as const) {
+      element<HTMLInputElement>(document, `#registration input[name="${name}"]`).value = fields[name];
     }
+    const region = element<HTMLSelectElement>(document, '#registration select[name="region"]');
+    const custom = element<HTMLInputElement>(document, '#registration input[name="customRegion"]');
+    expect(custom.disabled).toBe(true);
+    region.selectedIndex = region.options.length - 1;
+    region.dispatchEvent(new Event("change"));
+    expect(custom.disabled).toBe(false);
+    expect(custom.required).toBe(true);
+    custom.value = fields.region;
     submit("#registration-form");
 
     await vi.waitFor(() => expect(field("source").value).toBe("new-iam"));
     expect(field("target").value).toBe("new-iam-session");
     expect(document.querySelector("#registration[open]")).toBeNull();
     expect(api.registerIam).toHaveBeenCalledExactlyOnceWith(fields);
+  });
+
+  it("offers key registration on the first screen and continues to MFA setup with the selected region", async () => {
+    const { api } = backend();
+    api.registerIam.mockResolvedValue([profile("work-source", "iamSource", { mfaDevice: "SERIAL" })]);
+    mount(api);
+    await click('.onboarding .primary[data-action="start-iam"]');
+    element<HTMLInputElement>(document, '#registration [name="name"]').value = "work-source";
+    element<HTMLInputElement>(document, '#registration [name="accessKeyId"]').value = "AKIAEXAMPLE000000000";
+    element<HTMLInputElement>(document, '#registration [name="secretAccessKey"]').value = "synthetic-secret-for-tests-only";
+    const region = element<HTMLSelectElement>(document, '#registration [name="region"]');
+    expect(region.value).toBe("");
+    region.value = "ap-northeast-2";
+    expect(region.selectedOptions[0].textContent).toContain("서울");
+    submit("#registration-form");
+
+    await vi.waitFor(() => expect(document.querySelector("#editor[open]")).not.toBeNull());
+    expect(api.registerIam).toHaveBeenCalledExactlyOnceWith(expect.objectContaining({ region: "ap-northeast-2" }));
+    expect(field("source").value).toBe("work-source");
+    expect(field("region").value).toBe("");
+    submit("#session-form");
+    await vi.waitFor(() => expect(api.saveSession).toHaveBeenCalledExactlyOnceWith({
+      id: null, label: "work-source-session",
+      login: { kind: "iamMfa", source: "work-source", target: "work-source-session", device: "SERIAL", duration: null },
+    }));
   });
 
   it("verifies the selected Identity Center profile after import without opening browser login", async () => {

@@ -1,5 +1,6 @@
 import type { IamRegistration } from "../domain";
-import { bindSubmit, element, escape } from "./html";
+import { bindSubmit, element } from "./html";
+import { bindRegionField, regionField } from "./region-field";
 
 export function showIamRegistration(
   dialog: HTMLDialogElement,
@@ -12,7 +13,7 @@ export function showIamRegistration(
       <h2 id="registration-title">IAM 원본 프로필 등록</h2>
       <button type="button" class="icon-button" data-close="registration" aria-label="닫기">×</button>
     </div>
-    <p class="dialog-summary">장기 IAM 액세스 키를 AWS CLI 공유 자격 증명 파일에 저장합니다.</p>
+    <p class="dialog-summary">MFA 세션에 사용할 장기 IAM 액세스 키를 AWS 공유 자격 증명 파일에 저장합니다.</p>
     <label class="field">AWS 프로필 이름
       <input name="name" required maxlength="256" autofocus />
     </label>
@@ -22,9 +23,8 @@ export function showIamRegistration(
     <label class="field">비밀 액세스 키
       <input name="secretAccessKey" type="password" required minlength="16" maxlength="256" autocomplete="off" />
     </label>
-    <label class="field">기본 리전 (선택)
-      <input name="region" maxlength="64" value="${escape(region)}" placeholder="예시 ap-northeast-2" />
-    </label>
+    ${regionField("기본 리전 (선택)", "리전 설정 안 함", region)}
+    <p class="field-hint">AWS CLI 출력 형식의 기본값은 JSON입니다.</p>
     <p class="form-error" role="alert" hidden></p>
     <div class="actions dialog-actions">
       <button class="button primary" type="submit">등록</button>
@@ -33,6 +33,7 @@ export function showIamRegistration(
   </form>`;
 
   const form = element<HTMLFormElement>(dialog, "form");
+  const readRegion = bindRegionField(form);
   const accessKeyId = element<HTMLInputElement>(form, '[name="accessKeyId"]');
   const secretAccessKey = element<HTMLInputElement>(form, '[name="secretAccessKey"]');
   const closeButtons = Array.from(form.querySelectorAll<HTMLButtonElement>("[data-close]"));
@@ -45,7 +46,7 @@ export function showIamRegistration(
   bindSubmit(form, async () => {
     const registration = {
       name: element<HTMLInputElement>(form, '[name="name"]').value.trim(),
-      region: element<HTMLInputElement>(form, '[name="region"]').value.trim(),
+      region: readRegion(),
       accessKeyId: accessKeyId.value.trim(),
       secretAccessKey: secretAccessKey.value.trim(),
     };

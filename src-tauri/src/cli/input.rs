@@ -1,5 +1,4 @@
 use super::issue::Issue;
-use crate::model::IamRegistration;
 use std::collections::VecDeque;
 use zeroize::Zeroizing;
 
@@ -26,13 +25,18 @@ impl Interaction {
         }
     }
 
-    pub(super) fn configure(registration: IamRegistration) -> Self {
+    pub(super) fn configure(
+        access_key_id: Zeroizing<String>,
+        secret_access_key: Zeroizing<String>,
+        region: String,
+        output_format: &str,
+    ) -> Self {
         Self {
             replies: [
-                (Prompt::AccessKey, registration.access_key_id),
-                (Prompt::SecretKey, registration.secret_access_key),
-                (Prompt::Region, Zeroizing::new(registration.region)),
-                (Prompt::Output, Zeroizing::new(String::new())),
+                (Prompt::AccessKey, access_key_id),
+                (Prompt::SecretKey, secret_access_key),
+                (Prompt::Region, Zeroizing::new(region)),
+                (Prompt::Output, Zeroizing::new(output_format.into())),
             ]
             .into(),
             mfa: false,

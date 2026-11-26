@@ -2,6 +2,7 @@ import { profileName, type Login, type Profile, type SessionDraft } from "../dom
 import { editorDefaults, suggestTarget, type EditorSelection } from "./editor-suggestions";
 import { bindSubmit, element, escape } from "./html";
 import { bindMfaLookup } from "./mfa-devices";
+import { bindRegionField, regionField } from "./region-field";
 
 type EditorOptions = EditorSelection & {
   items: Profile[];
@@ -38,10 +39,7 @@ function iamFields(items: Profile[], defaults: Defaults): string {
       <datalist id="targets">${targets.map((profile) => profileOption(profile)).join("")}</datalist>
     </label>
     <p class="field-hint">Terraform과 kubeconfig에서 쓰는 이름으로 설정하세요.</p>
-    <label class="field">초기 대상 리전 (선택)
-      <input name="region" maxlength="64" spellcheck="false" placeholder="대상에 리전이 없으면 원본 리전 사용"
-        value="${escape(region ?? "")}" />
-    </label>
+    ${regionField("초기 대상 리전 (선택)", "대상에 리전이 없으면 원본 리전 사용", region ?? "")}
     <label class="field">MFA 장치 ARN 또는 시리얼
       <input name="device" required maxlength="256" spellcheck="false" value="${escape(device)}" />
     </label>
@@ -136,11 +134,10 @@ function bindSuggestions(form: HTMLFormElement, options: EditorOptions, defaults
   bindMfaLookup(form, source, options.lookupMfaDevices);
 }
 
-function readSessionDraft(form: HTMLFormElement, id: string | null): SessionDraft {
+function readSessionDraft(form: HTMLFormElement, id: string | null, region: string): SessionDraft {
   const entries = new FormData(form);
   const value = (name: string) => String(entries.get(name) ?? "").trim();
   const duration = value("duration");
-  const region = value("region");
   const task = value("task");
   const login: Login = value("kind") === "sso" ? { kind: "sso", profile: value("profile") } : {
     kind: "iamMfa", source: value("source"), target: value("target"), device: value("device"),
@@ -157,8 +154,9 @@ export function showEditor(dialog: HTMLDialogElement, options: EditorOptions): v
   const form = element<HTMLFormElement>(dialog, "form");
   bindAuthMode(form);
   bindSuggestions(form, options, defaults);
+  const readRegion = bindRegionField(form);
   bindSubmit(form, async () => {
-    await onSave(readSessionDraft(form, session?.id ?? null));
+    await onSave(readSessionDraft(form, session?.id ?? null, readRegion()));
     if (dialog.open) dialog.close();
   });
   if (!dialog.open) dialog.showModal();

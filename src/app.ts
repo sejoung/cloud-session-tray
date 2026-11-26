@@ -110,7 +110,7 @@ class Application {
 
   private pageHtml(state: Dashboard): string {
     switch (this.page) {
-      case "sessions": return sessionsPage(state, this.selectedSession());
+      case "sessions": return sessionsPage(state, this.profiles, this.selectedSession());
       case "cli": return cliPage(state, {
         profiles: this.profiles, cliBusy: this.cliBusy,
         installerState: this.installerState, wizardBusy: this.wizardBusy,
@@ -222,11 +222,13 @@ class Application {
     await this.refresh();
   }
 
-  private openIamRegistration(fromEditor: boolean): void {
+  private openIamRegistration(continueToEditor: boolean, session?: Session): void {
     const region = this.profiles?.find((profile) => profile.preferred)?.region ?? "";
     showIamRegistration(this.ui.registration, region, async (registration) => {
-      this.profiles = await this.api.registerIam(registration);
-      if (fromEditor) await this.openEditor(this.editedSession, "iamMfa", registration.name);
+      const profiles = await this.api.registerIam(registration);
+      await this.profileRequest?.catch(() => {});
+      this.profiles = profiles;
+      if (continueToEditor) await this.openEditor(session, "iamMfa", registration.name);
       this.render();
       this.showMessage("IAM 프로필을 등록했습니다.");
     });
@@ -317,7 +319,8 @@ class Application {
       case "auto-cli": await this.checkCli("reset_cli"); return;
       case "profiles": await this.loadProfiles(); break;
       case "register-iam": this.openIamRegistration(false); return;
-      case "editor-register-iam": this.openIamRegistration(true); return;
+      case "start-iam": this.openIamRegistration(true); return;
+      case "editor-register-iam": this.openIamRegistration(true, this.editedSession); return;
       case "wizard": await this.runWizard(false); return;
       case "editor-wizard": await this.runWizard(true); return;
     }
