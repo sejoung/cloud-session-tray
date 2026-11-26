@@ -21,6 +21,7 @@ export interface DesktopApi {
   saveSession(draft: SessionDraft): Promise<string>;
   renewMfa(id: string, otp: string): Promise<void>;
   savePreferences(preferences: Preferences): Promise<void>;
+  latestCliVersion(force: boolean): Promise<string | null>;
   installCli(): Promise<void>;
   openDocs(topic: string): Promise<void>;
   allowNotifications(): Promise<boolean>;

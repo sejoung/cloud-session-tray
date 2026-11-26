@@ -197,6 +197,59 @@ describe("AWS profile imports", () => {
 });
 
 describe("Desktop controls", () => {
+  it.each([
+    ["2.9.10", "2.10.0", true],
+    ["2.10.9", "2.10.10", true],
+    ["2.10.10", "2.10.10", false],
+    ["2.10.10", "2.10.9", false],
+    ["2.10.10", null, false],
+  ])("shows an update download for %s and published version %s only when newer", async (installed, published, update) => {
+    const { api } = backend({ cli: { ...cli, version: installed } });
+    api.latestCliVersion.mockResolvedValue(published);
+    mount(api);
+    await click('nav [data-page="cli"]');
+    await vi.waitFor(() => {
+      expect(api.latestCliVersion).toHaveBeenCalledExactlyOnceWith(false);
+      expect(element<HTMLButtonElement>(document, '[data-action="check-cli-release"]').disabled).toBe(false);
+    });
+
+    const button = document.querySelector('[data-action="install"]');
+    if (update) {
+      expect(button?.textContent).toContain("공식 업데이트 열기");
+      expect(element(document, "#content").textContent).toContain(`AWS CLI v${published} 업데이트가 있습니다.`);
+    } else {
+      expect(button).toBeNull();
+    }
+    if (installed === published) expect(element(document, ".badge").textContent).toContain("최신 버전");
+  });
+
+  it("refreshes update availability on demand without downloading an installer", async () => {
+    const { api } = backend();
+    api.latestCliVersion.mockResolvedValueOnce(cli.version).mockResolvedValueOnce("2.50.0");
+    mount(api);
+    await click('nav [data-page="cli"]');
+    await vi.waitFor(() => expect(element(document, ".badge").textContent).toContain("최신 버전"));
+    await click('[data-action="check-cli-release"]');
+
+    await vi.waitFor(() => expect(element(document, '[data-action="install"]').textContent).toContain("공식 업데이트 열기"));
+    expect(api.latestCliVersion.mock.calls).toEqual([[false], [true]]);
+    expect(api.installCli).not.toHaveBeenCalled();
+  });
+
+  it("waits for discovery before offering installation when only CLI v1 is present", async () => {
+    const { api, dashboard } = backend({ cli: null, scanning: true });
+    mount(api);
+    await click('nav [data-page="cli"]');
+    await vi.waitFor(() => expect(element(document, "#content").textContent).toContain("AWS CLI 찾는 중"));
+    expect(document.querySelector('[data-action="install"]')).toBeNull();
+
+    dashboard.cli = { ...cli, version: "1.44.0", v2: false, mfaSupported: false };
+    dashboard.scanning = false;
+    window.dispatchEvent(new Event("focus"));
+    await vi.waitFor(() => expect(element(document, '[data-action="install"]').textContent).toContain("공식 설치 파일 받기"));
+    expect(api.latestCliVersion).not.toHaveBeenCalled();
+  });
+
   it("opens setup and redetects AWS CLI after the installer is opened", async () => {
     const { api, dashboard } = backend({ cli: null, scanning: false }, [profile("default", "iamSource")]);
     api.cli.mockImplementation(async () => { dashboard.cli = cli; });

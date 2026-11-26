@@ -23,6 +23,8 @@ class Application {
   private dashboardRequest: Promise<void> | null = null;
   private cliBusy = false;
   private installerState: InstallerState = "idle";
+  private latestCliVersion: string | null = null;
+  private checkingCliRelease = false;
   private wizardBusy = false;
   private editedSession?: Session;
   private preferencesDraft: Preferences | null = null;
@@ -56,6 +58,7 @@ class Application {
     }, { signal });
     otpDialog.addEventListener("close", () => otpDialog.replaceChildren(), { signal });
     window.addEventListener("focus", () => {
+      void this.checkCliRelease();
       const task = this.installerState === "opened" ? this.checkCli("rescan_cli") : this.refresh();
       void task.catch(this.reportError);
     }, { signal });
@@ -114,6 +117,7 @@ class Application {
       case "cli": return cliPage(state, {
         profiles: this.profiles, cliBusy: this.cliBusy,
         installerState: this.installerState, wizardBusy: this.wizardBusy,
+        latestCliVersion: this.latestCliVersion, checkingCliRelease: this.checkingCliRelease,
       });
       case "settings": return settingsPage(state, this.preferencesDraft);
     }
@@ -155,6 +159,7 @@ class Application {
     this.page = next;
     this.render();
     this.ui.content.focus();
+    void this.checkCliRelease();
   }
 
   private refresh(): Promise<void> {
@@ -164,6 +169,7 @@ class Application {
       if (state.cli?.path !== previous?.path || state.cli?.version !== previous?.version) {
         this.profiles = null;
         if (state.cli?.v2) void this.loadProfiles().catch(() => {});
+        void this.checkCliRelease();
       }
       this.render();
     }).finally(() => { this.dashboardRequest = null; });
@@ -255,15 +261,26 @@ class Application {
     }
   }
 
+  private async checkCliRelease(force = false): Promise<void> {
+    if (this.page !== "cli" || !this.dashboard?.cli?.v2 || this.checkingCliRelease) return;
+    this.checkingCliRelease = true;
+    this.render();
+    this.latestCliVersion = await this.api.latestCliVersion(force).catch(() => null);
+    this.checkingCliRelease = false;
+    if (force && !this.latestCliVersion) this.showMessage("AWS CLI 최신 버전을 확인하지 못했습니다.", true);
+    this.render();
+  }
+
   private async checkCli(command: Parameters<DesktopApi["cli"]>[0]): Promise<void> {
     if (this.cliBusy) return;
+    const previousVersion = this.dashboard?.cli?.version;
     this.cliBusy = true;
     this.render();
     try {
       const changed = await this.api.cli(command);
       await this.refresh();
       if (this.dashboard?.cli?.v2 && changed !== false) {
-        if (this.installerState === "opened") this.installerState = "idle";
+        if (this.installerState === "opened" && this.dashboard.cli.version !== previousVersion) this.installerState = "idle";
         await this.loadProfiles();
       } else if (this.installerState === "opened" && command === "rescan_cli") {
         this.showMessage("AWS CLI를 찾지 못했습니다. 설치 완료 여부를 확인하거나 실행 파일을 선택하세요.", true);
@@ -314,6 +331,7 @@ class Application {
       case "check": if (session) await this.api.session("check_session", session.id); break;
       case "cancel": if (session) await this.api.session("cancel_session", session.id); break;
       case "install": await this.install(); return;
+      case "check-cli-release": await this.checkCliRelease(true); return;
       case "rescan": await this.checkCli("rescan_cli"); return;
       case "choose": await this.checkCli("choose_cli"); return;
       case "auto-cli": await this.checkCli("reset_cli"); return;

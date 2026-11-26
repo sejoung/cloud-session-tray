@@ -56,6 +56,7 @@ export function backend(state: Partial<Dashboard> = {}, profiles: Profile[] = []
     savePreferences: vi.fn<DesktopApi["savePreferences"]>(async (preferences) => {
       dashboard.preferences = preferences;
     }),
+    latestCliVersion: vi.fn<DesktopApi["latestCliVersion"]>(async () => cli.version),
     installCli: vi.fn<DesktopApi["installCli"]>(async () => {}),
     openDocs: vi.fn<DesktopApi["openDocs"]>(async () => {}),
     allowNotifications: vi.fn<DesktopApi["allowNotifications"]>(async () => true),

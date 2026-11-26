@@ -19,7 +19,7 @@ Cloud Session Tray lets you check and renew AWS CLI sessions from the macOS menu
 
 The app interface is in Korean. The labels below match what you see in the app.
 
-1. Open **AWS CLI** to check the executable and version. Use **다시 탐색** (scan again) after installing the CLI or **실행 파일 선택** (select executable) for a custom install location.
+1. Open **AWS CLI** to check the executable and version. **공식 업데이트 열기** (Open official update) appears when a newer version is available. The screen checks automatically at most once every 24 hours. Use **업데이트 확인** (Check for updates) to check immediately, **다시 탐색** (Scan again) after installing, or **실행 파일 선택** (Select executable) for a custom install location.
 2. For a first IAM setup, use **세션 → IAM 액세스 키 등록** (Sessions → Register IAM access keys). Pick an optional region from the list. The app saves JSON as the default CLI output format for the new source profile and opens MFA setup with that profile selected. Use **프로필 연결** (Connect profile) or **프로필 추가** (Add profile) for existing profiles.
    - **IAM MFA** starts with your preferred local source profile and suggests a separate destination for temporary credentials. Use **MFA 장치 찾기** (Find MFA devices) or enter the device ARN or serial. Device lookup requires `iam:ListMFADevices`.
    - **IAM Identity Center** uses a local SSO profile and checks its existing login. To create one, open **SSO 마법사 열기** (Open SSO wizard) with your organization's start or issuer URL and SSO region.

@@ -1,3 +1,4 @@
+mod cli_release;
 mod commands;
 mod dialogs;
 mod installer;
@@ -17,6 +18,7 @@ pub fn run() {
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_notification::init())
         .plugin(tauri_plugin_opener::init())
+        .manage(cli_release::CliReleaseCache::default())
         .invoke_handler(tauri::generate_handler![
             commands::dashboard,
             commands::rescan_cli,
@@ -34,6 +36,7 @@ pub fn run() {
             commands::renew_sso,
             commands::cancel_session,
             commands::open_docs,
+            cli_release::latest_cli_version,
             installer::install_cli,
             profile_tools::tool_connection,
             profile_tools::test_connection,

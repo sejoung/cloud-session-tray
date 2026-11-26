@@ -20,6 +20,7 @@ export const desktop: DesktopApi = {
   saveSession: ({ id, label, login, task }) => invoke("save_session", { id, label, login, task }),
   renewMfa: (id, otp) => invoke("renew_mfa", { id, otp }),
   savePreferences: (preferences) => invoke("save_preferences", { preferences }),
+  latestCliVersion: (force) => invoke("latest_cli_version", { force }),
   installCli: () => invoke("install_cli"),
   openDocs: (topic) => invoke("open_docs", { topic }),
   allowNotifications: async () => await isPermissionGranted() || await requestPermission() === "granted",
