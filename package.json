@@ -23,6 +23,8 @@
     "lint:rust": "cargo fmt --manifest-path src-tauri/Cargo.toml --check && cargo clippy --locked --manifest-path src-tauri/Cargo.toml --all-targets -- -D warnings",
     "test": "npm run test:web && npm run test:rust",
     "test:web": "vitest run --environment jsdom",
+    "test:e2e": "playwright test --project=chromium",
+    "docs:capture": "playwright test --project=manual",
     "test:rust": "cargo test --locked --manifest-path src-tauri/Cargo.toml"
   },
   "dependencies": {
@@ -31,7 +33,9 @@
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
+    "@playwright/test": "^1.65.1",
     "@tauri-apps/cli": "^2.11.0",
+    "@types/node": "^24.19.4",
     "dependency-cruiser": "^17.4.3",
     "eslint": "^10.15.0",
     "globals": "^16.5.0",

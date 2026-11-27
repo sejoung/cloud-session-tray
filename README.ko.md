@@ -4,6 +4,7 @@
 
 [![CI](https://github.com/sejoung/cloud-session-tray/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/sejoung/cloud-session-tray/actions/workflows/ci.yml)
 [![최신 릴리즈](https://img.shields.io/github/v/release/sejoung/cloud-session-tray)](https://github.com/sejoung/cloud-session-tray/releases/latest)
+[![누적 다운로드](https://img.shields.io/github/downloads/sejoung/cloud-session-tray/total?label=%EB%8B%A4%EC%9A%B4%EB%A1%9C%EB%93%9C)](https://github.com/sejoung/cloud-session-tray/releases/latest)
 [![Apache 2.0 라이선스](https://img.shields.io/badge/license-Apache%202.0-blue)](LICENSE)
 
 macOS 메뉴 막대와 Windows 시스템 트레이에서 AWS 프로필을 확인하고 갱신하는 데스크톱 앱입니다. 앱 식별자는 `io.github.sejoung.cst`입니다.
@@ -13,7 +14,7 @@ macOS 메뉴 막대와 Windows 시스템 트레이에서 AWS 프로필을 확인
 - **macOS** — Apple Silicon(`arm64`) 전용입니다. DMG를 내려받으세요. 앱은 애드혹 서명을 사용하며 공증되지 않았습니다.
 - **Windows** — x64를 지원합니다. NSIS 설치 파일을 내려받으세요. 설치 파일에는 코드 서명이 없습니다.
 
-[최신 릴리즈](https://github.com/sejoung/cloud-session-tray/releases/latest)
+[다운로드 및 화면 매뉴얼](https://sejoung.github.io/cloud-session-tray/ko/) · [최신 릴리즈](https://github.com/sejoung/cloud-session-tray/releases/latest)
 
 ## 시작하기
 
@@ -54,6 +55,14 @@ npm run build
 npm run lint
 npm test
 npm run tauri build
+```
+
+Playwright용 Chromium을 설치하면 브라우저 E2E를 실행하고 매뉴얼 화면을 다시 캡처할 수 있습니다. 캡처 명령은 예시 데이터로 앱 화면 6장을 만들어 `docs/assets`에 저장합니다.
+
+```sh
+npx playwright install chromium
+npm run test:e2e
+npm run docs:capture
 ```
 
 ## 릴리즈

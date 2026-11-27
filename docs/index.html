@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Download Cloud Session Tray and follow the illustrated guide to connecting and renewing AWS profiles on macOS and Windows.">
+  <title>Cloud Session Tray — Download and manual</title>
+  <link rel="icon" href="assets/icon.png">
+  <link rel="alternate" hreflang="ko" href="ko/">
+  <link rel="stylesheet" href="assets/guide.css">
+  <script type="module" src="assets/release.js"></script>
+</head>
+<body>
+  <a class="skip" href="#download">Skip to content</a>
+  <header class="masthead">
+    <div class="wrap header-row">
+      <a class="brand" href="./"><img src="assets/icon.png" width="32" height="32" alt="">Cloud Session Tray</a>
+      <nav class="navigation" aria-label="Main navigation">
+        <a href="https://github.com/sejoung/cloud-session-tray">GitHub</a>
+        <div class="languages" aria-label="Language">
+          <a href="./" aria-current="page">English</a>
+          <a href="ko/" lang="ko" hreflang="ko">한국어</a>
+        </div>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero" id="download">
+      <div class="wrap hero-grid">
+        <div>
+          <h1>Manage AWS sessions from the tray</h1>
+          <p>Check and renew AWS CLI profiles from your macOS menu bar or Windows system tray.</p>
+          <div class="download-buttons">
+            <a class="download" data-installer=".dmg" href="https://github.com/sejoung/cloud-session-tray/releases/latest">Download for macOS <small>Apple Silicon · DMG</small></a>
+            <a class="download" data-installer=".exe" href="https://github.com/sejoung/cloud-session-tray/releases/latest">Download for Windows <small>x64 · EXE</small></a>
+          </div>
+          <a class="install-link" href="#installation">Installation instructions</a>
+        </div>
+        <figure class="hero-shot">
+          <img src="assets/sessions.png" width="1100" height="760" alt="Cloud Session Tray showing an active AWS session with its status and renewal button" fetchpriority="high">
+          <figcaption>Session screen with example data</figcaption>
+        </figure>
+      </div>
+    </section>
+
+    <section class="wrap installation" id="installation">
+      <h2 class="section-title">Install Cloud Session Tray</h2>
+      <div class="platforms">
+        <article class="platform">
+          <h3>macOS · Apple Silicon</h3>
+          <p>Open the DMG, drag Cloud Session Tray to Applications, then launch it. The build uses ad hoc signing. If Gatekeeper blocks the launch, follow <a href="https://support.apple.com/en-us/102445">Apple’s instructions for opening the app</a>.</p>
+        </article>
+        <article class="platform">
+          <h3>Windows · x64</h3>
+          <p>Run the EXE installer and complete setup. Open Cloud Session Tray from the Start menu. The installer is unsigned, so Windows may show a publisher warning.</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="wrap manual" id="manual">
+      <h2 class="section-title">Set up your first AWS session</h2>
+      <p>The app’s controls are in Korean. The English guide includes the labels you’ll see on screen.</p>
+      <nav class="manual-nav" aria-label="Manual sections">
+        <a href="#aws-cli">AWS CLI</a>
+        <a href="#iam">IAM MFA</a>
+        <a href="#identity-center">Identity Center</a>
+        <a href="#renew">Renew a session</a>
+      </nav>
+
+      <article class="step" id="aws-cli">
+        <div>
+          <h3>Connect AWS CLI v2</h3>
+          <ol>
+            <li>Open <strong>AWS CLI</strong> in the sidebar.</li>
+            <li>If the app cannot find the CLI, choose <strong lang="ko">공식 설치 파일 받기</strong> (Get official installer) and complete the installation.</li>
+            <li>Click <strong lang="ko">다시 탐색</strong> (Scan again). For a custom install location, use <strong lang="ko">실행 파일 선택</strong> (Select executable).</li>
+          </ol>
+        </div>
+        <figure>
+          <a class="screenshot" href="assets/cli.png"><img src="assets/cli.png" width="1100" height="760" loading="lazy" alt="AWS CLI screen with the official installer button highlighted"></a>
+          <figcaption>The installer button appears when the app cannot find AWS CLI v2.</figcaption>
+        </figure>
+      </article>
+
+      <article class="step" id="iam">
+        <div>
+          <h3>Connect an IAM user with MFA</h3>
+          <ol>
+            <li>In <strong lang="ko">세션</strong> (Sessions), choose <strong lang="ko">IAM 액세스 키 등록</strong> (Register IAM access keys). Enter your profile name and access keys, optionally select a region, then click <strong lang="ko">등록</strong> (Register).</li>
+            <li>In the MFA setup dialog, choose a destination profile for the temporary session. If you already have an IAM source profile, open <strong lang="ko">프로필 연결</strong> (Connect profile) or <strong lang="ko">프로필 추가</strong> (Add profile) and select it.</li>
+            <li>Use <strong lang="ko">MFA 장치 찾기</strong> (Find MFA devices) or enter the device ARN or serial, then click <strong lang="ko">저장</strong> (Save).</li>
+          </ol>
+          <p>Device lookup requires the <code>iam:ListMFADevices</code> permission.</p>
+        </div>
+        <div class="screenshots">
+          <figure>
+            <a class="screenshot" href="assets/iam-register.png"><img src="assets/iam-register.png" width="1100" height="760" loading="lazy" alt="IAM registration dialog showing the profile, key and default region fields"></a>
+            <figcaption>Register the IAM source profile with your access keys.</figcaption>
+          </figure>
+          <figure>
+            <a class="screenshot" href="assets/iam-mfa.png"><img src="assets/iam-mfa.png" width="1100" height="880" loading="lazy" alt="MFA setup dialog showing the source profile, destination profile and Find MFA devices button"></a>
+            <figcaption>Choose the destination and MFA device.</figcaption>
+          </figure>
+        </div>
+      </article>
+
+      <article class="step" id="identity-center">
+        <div>
+          <h3>Connect IAM Identity Center</h3>
+          <ol>
+            <li>In <strong lang="ko">세션</strong> (Sessions), open the profile setup and select <strong>IAM Identity Center</strong> as the authentication method.</li>
+            <li>Select an existing profile or click <strong lang="ko">SSO 마법사 열기</strong> (Open SSO wizard). For a new profile, complete the AWS CLI wizard in the terminal and sign in through your browser. Use your organization’s start or issuer URL and SSO region.</li>
+            <li>Select your profile and click <strong lang="ko">저장</strong> (Save).</li>
+          </ol>
+        </div>
+        <figure>
+          <a class="screenshot" href="assets/sso.png"><img src="assets/sso.png" width="1100" height="760" loading="lazy" alt="Identity Center setup with the profile selector and Open SSO wizard button"></a>
+          <figcaption>Choose an existing profile or start the SSO wizard.</figcaption>
+        </figure>
+      </article>
+
+      <article class="step" id="renew">
+        <div>
+          <h3>Renew and check a session</h3>
+          <ol>
+            <li>Select a saved session, then click <strong lang="ko">갱신</strong> (Renew). Enter your current six-digit MFA code for IAM, or complete sign-in in your browser for Identity Center.</li>
+            <li>Click <strong lang="ko">상태 확인</strong> (Check status) to see the account and identity. You can also renew or check status from the menu bar or system tray.</li>
+          </ol>
+          <p>To get a reminder before IAM MFA credentials expire, open <strong lang="ko">설정</strong> (Settings) and enable <strong lang="ko">만료 알림</strong> (Expiration notifications).</p>
+        </div>
+        <figure>
+          <a class="screenshot" href="assets/renew.png"><img src="assets/renew.png" width="1100" height="760" loading="lazy" alt="IAM MFA renewal dialog asking for a six-digit code"></a>
+          <figcaption>Enter the current code from your MFA device.</figcaption>
+        </figure>
+      </article>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="wrap">
+      <span>Cloud Session Tray</span>
+      <a href="https://github.com/sejoung/cloud-session-tray/releases">Release history</a>
+    </div>
+  </footer>
+</body>
+</html>

@@ -4,6 +4,7 @@ English · [한국어](README.ko.md)
 
 [![CI](https://github.com/sejoung/cloud-session-tray/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/sejoung/cloud-session-tray/actions/workflows/ci.yml)
 [![Latest release](https://img.shields.io/github/v/release/sejoung/cloud-session-tray)](https://github.com/sejoung/cloud-session-tray/releases/latest)
+[![Total downloads](https://img.shields.io/github/downloads/sejoung/cloud-session-tray/total)](https://github.com/sejoung/cloud-session-tray/releases/latest)
 [![Apache 2.0 license](https://img.shields.io/badge/license-Apache%202.0-blue)](LICENSE)
 
 Cloud Session Tray lets you check and renew AWS CLI sessions from the macOS menu bar or Windows system tray. It supports IAM users with MFA and IAM Identity Center profiles. The application identifier is `io.github.sejoung.cst`.
@@ -13,7 +14,7 @@ Cloud Session Tray lets you check and renew AWS CLI sessions from the macOS menu
 - **macOS** — Apple Silicon (`arm64`) only. Download the DMG. The app is ad hoc signed and has no Apple notarization.
 - **Windows** — x64. Download the NSIS installer. The installer is unsigned.
 
-[Latest release](https://github.com/sejoung/cloud-session-tray/releases/latest)
+[Download and illustrated manual](https://sejoung.github.io/cloud-session-tray/) · [Latest release](https://github.com/sejoung/cloud-session-tray/releases/latest)
 
 ## Getting started
 
@@ -56,6 +57,14 @@ npm run tauri build
 ```
 
 The lint suite limits source, tests, and config files to 400 lines each. It runs ESLint, dependency-cruiser, jscpd, rustfmt, and Clippy. Dependency-cruiser checks frontend dependencies, and the Rust test suite checks Rust module boundaries and cycles. Tests use temporary files and test backends in place of live AWS credentials.
+
+Install Chromium for Playwright to run the browser E2E tests and refresh the manual screenshots. The capture command writes six app screenshots to `docs/assets` using example data.
+
+```sh
+npx playwright install chromium
+npm run test:e2e
+npm run docs:capture
+```
 
 Before distributing a build, smoke-test CLI discovery and installation, IAM renewal and invalid MFA codes, SSO login and cancellation, and tray actions and expiration notifications on each platform. For IAM renewal, verify that the configured destination profile is the one your tools use.
 
