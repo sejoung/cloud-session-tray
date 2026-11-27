@@ -1,22 +1,14 @@
-mod checks;
-mod configuration;
+mod aws_cli;
 mod core;
 mod dashboard;
-mod discovery;
-mod jobs;
-mod renewal_region;
-mod renewals;
-mod storage;
-mod terminal_path;
-mod transfers;
+mod profiles;
+mod sessions;
+mod settings;
+mod sharing;
 
 pub use core::AppState;
 pub use dashboard::Dashboard;
-pub use jobs::Action;
+pub use sessions::Action;
 
-#[cfg(test)]
-mod settings_tests;
 #[cfg(all(test, unix))]
 mod tests;
-#[cfg(test)]
-mod transfer_tests;

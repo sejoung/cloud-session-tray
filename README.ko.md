@@ -76,6 +76,19 @@ npm run test:e2e
 npm run docs:capture
 ```
 
+### 코드 구조
+
+| 디렉터리 | 담당 코드 |
+| --- | --- |
+| `src/app/` | 앱 화면 틀, 화면 전환, 공통 스타일, 여러 기능을 잇는 흐름 |
+| `src/features/` | AWS CLI, 세션, 프로필, 공유, 설정 화면 |
+| `src/shared/` | 프런트엔드 모델, HTML 헬퍼, 다국어 처리 |
+| `src/desktop/` | TypeScript 데스크톱 API 계약과 Tauri 어댑터 |
+| `src-tauri/src/desktop/commands/` | 기능별 Tauri 명령 |
+| `src-tauri/src/state/` | 대시보드 상태와 CLI 선택, 프로필, 세션, 공유, 설정 처리 |
+| `src-tauri/src/cli/`, `profiles/`, `model/` | `src-tauri/src/` 아래의 AWS CLI 실행, AWS 프로필 파일 처리, Rust 데이터 타입 |
+| `tests/web/`, `tests/e2e/` | Vitest와 브라우저 동작 테스트 |
+
 ## 릴리즈
 
 - **CI**는 `main`에 푸시하거나 PR을 열 때 Ubuntu에서 버전 일치, 린트, 테스트, 프런트엔드 빌드를 확인합니다.

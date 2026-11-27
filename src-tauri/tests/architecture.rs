@@ -136,6 +136,10 @@ impl References {
 }
 
 impl<'ast> Visit<'ast> for References {
+    fn visit_visibility(&mut self, _: &'ast syn::Visibility) {
+        // A scoped visibility path limits access to a declaration.
+    }
+
     fn visit_item_use(&mut self, import: &'ast syn::ItemUse) {
         if !test_only(&import.attrs) {
             self.use_tree(&mut Vec::new(), &import.tree);
@@ -294,4 +298,25 @@ fn catches_reverse_layer_edges_and_cycles() {
     let (graph, violations) = dependency_graph(&modules);
     assert_eq!(violations.len(), 2, "{violations:?}");
     assert!(find_cycle(&graph).is_some());
+}
+
+#[test]
+fn scoped_visibility_preserves_dependency_direction() {
+    let modules = BTreeMap::from([
+        (
+            vec!["desktop".into()],
+            syn::parse_file("use self::commands::dashboard;")
+                .unwrap()
+                .items,
+        ),
+        (
+            vec!["desktop".into(), "commands".into()],
+            syn::parse_file("pub(in crate::desktop) fn dashboard() {}")
+                .unwrap()
+                .items,
+        ),
+    ]);
+    let (graph, violations) = dependency_graph(&modules);
+    assert!(violations.is_empty(), "{violations:?}");
+    assert!(find_cycle(&graph).is_none());
 }

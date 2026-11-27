@@ -1,13 +1,10 @@
-mod cli_installations;
-mod cli_release;
 mod commands;
 mod dialogs;
-mod installer;
 mod localization;
 mod logging;
-mod profile_tools;
 mod tray;
 
+use self::commands::{app, aws_cli, profiles, sessions, sharing};
 use crate::state::AppState;
 use std::{sync::Arc, time::Duration};
 use tauri::{Manager, RunEvent, WindowEvent};
@@ -21,34 +18,34 @@ pub fn run() {
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_notification::init())
         .plugin(tauri_plugin_opener::init())
-        .manage(cli_release::CliReleaseCache::default())
+        .manage(aws_cli::release::CliReleaseCache::default())
         .invoke_handler(tauri::generate_handler![
-            commands::dashboard,
-            commands::rescan_cli,
-            commands::choose_cli,
-            commands::reset_cli,
-            cli_installations::remove_cli,
-            cli_installations::set_terminal_path,
-            commands::profiles,
-            commands::mfa_devices,
-            commands::register_iam,
-            commands::configure_sso,
-            commands::save_session,
-            commands::remove_session,
-            commands::save_preferences,
-            commands::set_system_language,
-            commands::check_session,
-            commands::renew_mfa,
-            commands::renew_sso,
-            commands::cancel_session,
-            commands::open_docs,
-            cli_release::latest_cli_version,
-            installer::install_cli,
-            logging::open_log_folder,
-            profile_tools::prepare_shared_profile,
-            profile_tools::save_shared_profile,
-            profile_tools::open_shared_profile,
-            profile_tools::import_shared_sso,
+            app::dashboard,
+            aws_cli::rescan_cli,
+            aws_cli::choose_cli,
+            aws_cli::reset_cli,
+            aws_cli::remove_cli,
+            aws_cli::set_terminal_path,
+            profiles::profiles,
+            profiles::mfa_devices,
+            profiles::register_iam,
+            profiles::configure_sso,
+            sessions::save_session,
+            sessions::remove_session,
+            app::save_preferences,
+            app::set_system_language,
+            sessions::check_session,
+            sessions::renew_mfa,
+            sessions::renew_sso,
+            sessions::cancel_session,
+            app::open_docs,
+            aws_cli::release::latest_cli_version,
+            aws_cli::installer::install_cli,
+            app::open_log_folder,
+            sharing::prepare_shared_profile,
+            sharing::save_shared_profile,
+            sharing::open_shared_profile,
+            sharing::import_shared_sso,
         ])
         .setup(|app| {
             logging::initialize(app.handle());

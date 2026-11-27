@@ -77,6 +77,19 @@ npm run docs:capture
 
 Before distributing a build, smoke-test CLI discovery and installation, IAM renewal and invalid MFA codes, SSO login and cancellation, and tray actions and expiration notifications on each platform. For IAM renewal, verify that the configured destination profile is the one your tools use.
 
+### Code layout
+
+| Directory | Contents |
+| --- | --- |
+| `src/app/` | App shell, navigation, shared styles, and workflows that cross feature boundaries |
+| `src/features/` | AWS CLI, sessions, profiles, sharing, and settings views |
+| `src/shared/` | Frontend model, HTML helpers, and localization |
+| `src/desktop/` | TypeScript desktop API contract and Tauri adapter |
+| `src-tauri/src/desktop/commands/` | Tauri command handlers grouped by feature |
+| `src-tauri/src/state/` | Dashboard state and operations for CLI selection, profiles, sessions, sharing, and settings |
+| `src-tauri/src/cli/`, `profiles/`, `model/` | AWS CLI processes, AWS profile files, and Rust data types under `src-tauri/src/` |
+| `tests/web/`, `tests/e2e/` | Vitest coverage and browser workflows |
+
 ## Releasing
 
 - **CI** runs on Ubuntu for pull requests and pushes to `main`. It checks versions, runs lint and tests, and builds the frontend.

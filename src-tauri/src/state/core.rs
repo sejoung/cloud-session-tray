@@ -1,4 +1,4 @@
-use super::storage::{load_settings, save_settings};
+use super::settings::storage::{load_settings, save_settings};
 use crate::{
     cli::{Cancel, Installation},
     model::{Cli, Language, Phase, Session, Settings},

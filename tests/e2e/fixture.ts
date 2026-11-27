@@ -1,8 +1,8 @@
-import { mountApplication } from "../../src/app";
-import type { DesktopApi } from "../../src/desktop-api";
-import { profileName, type Dashboard, type Profile, type Session, type SharedProfile } from "../../src/domain";
-import { element } from "../../src/ui/html";
-import "../../src/style.css";
+import { mountApplication } from "../../src/app/application";
+import type { DesktopApi } from "../../src/desktop/api";
+import { profileName, type Dashboard, type Profile, type Session, type SharedProfile } from "../../src/shared/domain";
+import { element } from "../../src/shared/html";
+import "../../src/app/styles.css";
 
 const scenario = new URLSearchParams(location.search).get("scenario");
 const sso = scenario === "sso";
