@@ -1,6 +1,6 @@
 [package]
 name = "cloud-session-tray"
-version = "0.2.3"
+version = "0.2.4"
 description = "AWS session management from the system tray"
 authors = ["sejoung"]
 edition = "2024"
