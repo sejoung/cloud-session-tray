@@ -1,4 +1,4 @@
-import type { ConnectionCheck, Dashboard, IamRegistration, Language, Preferences, Profile, SessionDraft, SharedProfile, ToolConnection } from "./domain";
+import type { Dashboard, IamRegistration, Language, Preferences, Profile, SessionDraft, SharedProfile } from "./domain";
 
 type CliCommand = "rescan_cli" | "choose_cli" | "reset_cli";
 type SessionCommand = "renew_sso" | "check_session" | "cancel_session" | "remove_session";
@@ -7,8 +7,6 @@ type TrayEvent = "select-session" | "request-otp" | "session-error";
 export interface DesktopApi {
   dashboard(): Promise<Dashboard>;
   profiles(): Promise<Profile[]>;
-  toolConnection(profile: string): Promise<ToolConnection>;
-  testConnection(profile: string): Promise<ConnectionCheck>;
   prepareShare(profile: string, task: string): Promise<SharedProfile>;
   saveShare(shared: SharedProfile): Promise<boolean>;
   openShare(): Promise<SharedProfile | null>;

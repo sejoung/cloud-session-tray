@@ -30,11 +30,6 @@ export function backend(state: Partial<Dashboard> = {}, profiles: Profile[] = []
   const api = {
     dashboard: vi.fn<DesktopApi["dashboard"]>(async () => structuredClone(dashboard)),
     profiles: vi.fn<DesktopApi["profiles"]>(async () => profiles),
-    toolConnection: vi.fn<DesktopApi["toolConnection"]>(async (name) => ({
-      profile: name, cli: "/local/bin/aws", config: dashboard.files.config, credentials: dashboard.files.credentials,
-      region: "ap-northeast-2", regionConfigured: true, kind: "iamSession",
-    })),
-    testConnection: vi.fn<DesktopApi["testConnection"]>(async () => ({ status: "unknown", identity: null, message: null })),
     prepareShare: vi.fn<DesktopApi["prepareShare"]>(async (name, task) => ({
       version: 1, profile: name, label: name, task, region: "ap-northeast-2",
       authentication: { kind: "iamMfa", sourceHint: "default", duration: 43200 },

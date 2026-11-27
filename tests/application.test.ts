@@ -302,7 +302,7 @@ describe("Desktop controls", () => {
   });
 });
 
-describe("External tool profile workflows", () => {
+describe("Profile workflows", () => {
   it("opens the existing destination from the AWS file inventory", async () => {
     const { api } = backend({}, [
       profile("default", "iamSource", { preferred: true, mfaDevice: "SERIAL", linkedTarget: "tech" }),
@@ -373,21 +373,5 @@ describe("External tool profile workflows", () => {
       task: "Check the deployment",
       login: { kind: "iamMfa", source: "default", target: "tech", device: "LOCAL_SERIAL", duration: 43200, region: "ap-northeast-2" },
     })));
-  });
-
-  it("uses the exact profile and file paths for the EKS command and diagnostic", async () => {
-    const { api } = backend({ sessions: [mockSession("work-id", "Team dev", { kind: "sso", profile: "tech" })] });
-    mount(api);
-    await click('[data-workflow="connect"]');
-    await vi.waitFor(() => expect(document.querySelector("#workflow[open]")).not.toBeNull());
-    const name = element<HTMLInputElement>(document, "[data-cluster]");
-    name.value = "team-dev";
-    name.dispatchEvent(new Event("input", { bubbles: true }));
-    const commands = element<HTMLTextAreaElement>(document, "[data-commands]").value;
-    expect(commands).toContain("AWS_PROFILE='tech'");
-    expect(commands).toContain("AWS_SHARED_CREDENTIALS_FILE='/test/credentials'");
-    expect(commands).toContain("eks update-kubeconfig --name='team-dev' --region='ap-northeast-2' --profile='tech'");
-    await click("#workflow [data-test]");
-    expect(api.testConnection).toHaveBeenCalledExactlyOnceWith("tech");
   });
 });

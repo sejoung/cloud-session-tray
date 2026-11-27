@@ -31,15 +31,14 @@ AWS CLI는 기본 AWS 파일이나 앱을 실행할 때 지정한 `AWS_CONFIG_FI
 
 IAM MFA는 `aws configure mfa-login`을 지원하는 CLI v2가 필요합니다. 앱이 명령 지원 여부를 확인합니다. [AWS CLI 설치 안내](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html) · [IAM MFA 명령](https://docs.aws.amazon.com/cli/latest/reference/configure/mfa-login.html) · [Identity Center 설정](https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-sso.html)
 
-## 기존 프로필과 도구 연결
+## 기존 AWS 프로필 사용
 
-- **AWS CLI → 로컬 프로필**에서 각 프로필이 `config`와 `credentials` 중 어디에 있는지 확인합니다. 이미 도구에서 쓰는 임시 프로필은 **세션에 연결**을 눌러 갱신 대상으로 지정합니다. 장기 키가 `default`에 있다면 `default`를 원본으로 선택하고, 갱신 대상에는 도구에서 사용하는 이름을 입력합니다.
-- IAM MFA로 갱신하면 AWS CLI가 대상 프로필의 임시 키와 토큰을 `credentials`에 기록합니다. 대상에 리전이 비어 있을 때 CST가 초기 대상 리전이나 원본의 리전을 `config`에 기록합니다.
-- **도구 연결**에서 실제 프로필명과 파일 경로를 확인하고 bash/zsh 또는 PowerShell 설정을 복사할 수 있습니다. EKS 클러스터를 입력하면 동일한 프로필을 사용하는 `update-kubeconfig` 명령이 표시됩니다. 기존 kubeconfig가 이미 그 프로필을 사용한다면 세션 갱신 후 다시 조회하면 됩니다. [AWS 공유 파일](https://docs.aws.amazon.com/sdkref/latest/guide/file-format.html) · [EKS kubeconfig](https://docs.aws.amazon.com/eks/latest/userguide/create-kubeconfig.html)
+- **AWS CLI → 로컬 프로필**에서 각 프로필이 `config`와 `credentials` 중 어디에 있는지 확인합니다. 이미 쓰는 임시 프로필은 **세션에 연결**을 눌러 갱신 대상으로 지정합니다. 장기 키가 `default`에 있고 `tech`를 임시 프로필로 쓴다면 `default`를 원본으로, `tech`를 갱신 대상으로 선택합니다.
+- IAM MFA로 갱신하면 AWS CLI가 대상 프로필의 임시 키와 토큰을 `credentials`에 기록합니다. 대상에 리전이 비어 있을 때 CST가 초기 대상 리전이나 원본의 리전을 `config`에 기록합니다. [AWS 공유 파일](https://docs.aws.amazon.com/sdkref/latest/guide/file-format.html)
 
 ## 팀 공유
 
-**세션**에서 프로필을 선택하고 **공유 파일 내보내기**를 누릅니다. 갱신 대상과 작업 메모를 확인한 뒤 안내를 복사하거나 JSON 파일을 저장합니다. IAM 공유에는 원본 프로필 힌트, 갱신 대상, 리전과 기간을 담을 수 있습니다. Identity Center 공유에는 로그인 URL, SSO 리전, 계정과 역할을 담습니다. 자격 증명과 OTP는 공유 파일에 포함되지 않습니다.
+**세션**에서 프로필을 선택하고 **공유 파일 내보내기**를 누릅니다. 갱신 대상과 작업 메모를 확인한 뒤 안내를 복사하거나 JSON 파일을 저장합니다. IAM 공유에는 원본 프로필 힌트, 갱신 대상, 리전과 기간을 담을 수 있습니다. Identity Center 공유에는 로그인 URL, SSO 리전, 계정과 역할을 담습니다. AWS 액세스 키 ID, 시크릿 액세스 키, 세션 토큰, MFA 코드는 기기에 남습니다. 작업 메모도 공유되므로 민감한 정보는 입력하지 마세요.
 
 팀원은 **공유 파일 가져오기**에서 설정을 먼저 확인합니다. IAM의 경우 본인의 장기 키가 들어 있는 로컬 원본과 MFA 장치를 선택합니다. Identity Center는 가져온 프로필로 각자 로그인합니다.
 
@@ -65,7 +64,7 @@ npm test
 npm run tauri build
 ```
 
-Playwright용 Chromium을 설치하면 브라우저 E2E를 실행하고 매뉴얼 화면을 다시 캡처할 수 있습니다. 캡처 명령은 예시 데이터로 한글과 영문 화면을 만들어 `docs/assets`에 저장합니다. 앱 화면과 시스템 트레이는 `locales/en.json` 및 `locales/ko.json`의 번역 키를 공유합니다.
+Playwright용 Chromium을 설치하면 브라우저 E2E를 실행하고 매뉴얼 화면을 다시 캡처할 수 있습니다. 캡처 명령은 기본 창 크기에 예시 데이터를 표시한 한영 화면을 `docs/assets`에 저장합니다. WebKit에서 대화상자 레이아웃을 확인하려면 `npx playwright install webkit`으로 설치하고 `npx playwright test --project=webkit-layout`을 실행합니다. 앱 화면과 시스템 트레이는 `locales/en.json` 및 `locales/ko.json`의 번역 키를 공유합니다.
 
 ```sh
 npx playwright install chromium

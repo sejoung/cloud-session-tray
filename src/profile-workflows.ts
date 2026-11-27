@@ -1,6 +1,5 @@
 import type { DesktopApi } from "./desktop-api";
 import type { Profile, ProfilePreset, SharedProfile } from "./domain";
-import { showConnectionDialog } from "./ui/connection-dialog";
 import { showImportDialog, showShareDialog } from "./ui/share-dialog";
 
 type WorkflowCallbacks = {
@@ -31,11 +30,6 @@ export class ProfileWorkflows {
         const shared = await this.api.prepareShare(context.profile, context.task ?? "");
         showShareDialog(this.dialog, shared, (value) => this.api.saveShare(value));
         return;
-      }
-      case "connect": {
-        if (!context.profile) return;
-        const connection = await this.api.toolConnection(context.profile);
-        showConnectionDialog(this.dialog, connection, () => this.api.testConnection(connection.profile));
       }
     }
   }

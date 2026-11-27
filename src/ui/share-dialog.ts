@@ -26,7 +26,7 @@ function profileGuide(shared: SharedProfile): string {
       t("share.guideTarget", { profile: shared.profile }),
       t("share.guideDuration", { seconds: auth.duration ?? 43200 }),
       t("share.guideMfa"),
-      `aws configure mfa-login --profile=${shellQuote(auth.sourceHint || "default", "posix")} --update-profile=${shellQuote(shared.profile, "posix")} --duration-seconds=${auth.duration ?? 43200}`,
+      `aws configure mfa-login --profile=${shellQuote(auth.sourceHint || "default")} --update-profile=${shellQuote(shared.profile)} --duration-seconds=${auth.duration ?? 43200}`,
       t("share.guideTools", { profile: shared.profile }),
     );
   } else {
@@ -51,22 +51,27 @@ export function showShareDialog(
   dialog: HTMLDialogElement, shared: SharedProfile, save: (value: SharedProfile) => Promise<boolean>,
 ): void {
   dialog.innerHTML = `<form>
-    <div class="dialog-heading"><h2 id="workflow-title">${text("share.title")}</h2></div>
-    <p class="dialog-summary">${text("share.description")}</p>
-    <dl class="facts">${details(shared)}${fact(t("common.region"), shared.region ?? t("common.notSet"))}</dl>
-    ${profileInput(shared)}
-    <label class="field">${text("common.optionalTask")}
-      <textarea name="task" rows="3" maxlength="4000">${escape(shared.task)}</textarea>
-    </label>
-    <label class="field">${text("share.instructions")}
-      <textarea data-guide readonly rows="6"></textarea>
-    </label>
-    <p class="muted" role="status" data-copy-status></p>
-    <p class="form-error" role="alert" hidden></p>
-    <div class="actions dialog-actions">
-      <button class="button primary" type="submit">${text("share.export")}</button>
-      <button class="button" type="button" data-copy>${text("share.copy")}</button>
-      <button class="button subtle" type="button" data-close="workflow">${text("common.close")}</button>
+    <div class="dialog-heading"><h2 id="workflow-title" tabindex="-1" autofocus>${text("share.title")}</h2></div>
+    <div class="dialog-body">
+      <p class="notice">${text("share.credentialsExcluded")}</p>
+      <dl class="facts">${details(shared)}${fact(t("common.region"), shared.region ?? t("common.notSet"))}</dl>
+      ${profileInput(shared)}
+      <label class="field">${text("common.optionalTask")}
+        <textarea name="task" rows="2" maxlength="4000" aria-describedby="share-note-privacy">${escape(shared.task)}</textarea>
+      </label>
+      <p class="field-hint" id="share-note-privacy">${text("share.notePrivacy")}</p>
+      <label class="field">${text("share.instructions")}
+        <textarea data-guide readonly rows="4"></textarea>
+      </label>
+    </div>
+    <div class="dialog-footer">
+      <p class="muted" role="status" data-copy-status></p>
+      <p class="form-error" role="alert" hidden></p>
+      <div class="actions dialog-actions">
+        <button class="button primary" type="submit">${text("share.export")}</button>
+        <button class="button" type="button" data-copy>${text("share.copy")}</button>
+        <button class="button subtle" type="button" data-close="workflow">${text("common.close")}</button>
+      </div>
     </div>
   </form>`;
   const form = element<HTMLFormElement>(dialog, "form");
@@ -92,14 +97,18 @@ export function showImportDialog(
 ): void {
   dialog.innerHTML = `<form>
     <div class="dialog-heading"><h2 id="workflow-title">${text("share.importTitle")}</h2></div>
-    <p class="dialog-summary">${escape(shared.label)}</p>
-    ${profileInput(shared)}
-    <dl class="facts">${details(shared)}${fact(t("common.region"), shared.region ?? t("common.notSet"))}</dl>
-    ${shared.task ? `<section class="task-note"><h3>${text("common.task")}</h3><p>${escape(shared.task)}</p></section>` : ""}
-    <p class="form-error" role="alert" hidden></p>
-    <div class="actions dialog-actions">
-      <button class="button primary" type="submit">${shared.authentication.kind === "sso" ? t("share.importProfile") : t("share.openIam")}</button>
-      <button class="button" type="button" data-close="workflow">${text("common.cancel")}</button>
+    <div class="dialog-body">
+      <p class="dialog-summary">${escape(shared.label)}</p>
+      ${profileInput(shared)}
+      <dl class="facts">${details(shared)}${fact(t("common.region"), shared.region ?? t("common.notSet"))}</dl>
+      ${shared.task ? `<section class="task-note"><h3>${text("common.task")}</h3><p>${escape(shared.task)}</p></section>` : ""}
+    </div>
+    <div class="dialog-footer">
+      <p class="form-error" role="alert" hidden></p>
+      <div class="actions dialog-actions">
+        <button class="button primary" type="submit">${shared.authentication.kind === "sso" ? t("share.importProfile") : t("share.openIam")}</button>
+        <button class="button" type="button" data-close="workflow">${text("common.cancel")}</button>
+      </div>
     </div>
   </form>`;
   const form = element<HTMLFormElement>(dialog, "form");

@@ -1,6 +1,5 @@
 mod checks;
 mod configuration;
-mod connection;
 mod core;
 mod dashboard;
 mod discovery;
@@ -10,7 +9,6 @@ mod renewals;
 mod storage;
 mod transfers;
 
-pub use connection::{ConnectionCheck, ToolConnection};
 pub use core::AppState;
 pub use dashboard::Dashboard;
 pub use jobs::Action;

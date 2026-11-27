@@ -76,27 +76,31 @@ function editorHtml(items: Profile[], defaults: Defaults, { session, preset }: E
       <h2 id="editor-title">${session ? t("editor.editProfile") : t("editor.addProfile")}</h2>
       <button type="button" class="icon-button" data-close="editor" aria-label="${text("common.close")}">×</button>
     </div>
-    <label class="field">${text("common.authentication")}
-      <select name="kind">
-        <option value="iamMfa" ${defaults.kind === "iamMfa" ? "selected" : ""}>IAM MFA</option>
-        <option value="sso" ${defaults.kind === "sso" ? "selected" : ""}>IAM Identity Center</option>
-      </select>
-    </label>
-    ${iamFields(items, defaults)}
-    ${ssoFields(defaults)}
-    <label class="field">${text("editor.displayName")}
-      <input name="label" placeholder="${text("editor.useProfileName")}" maxlength="64" value="${escape(session?.label ?? preset?.label ?? "")}" />
-    </label>
-    <label class="field">${text("common.optionalTask")}
-      <textarea name="task" rows="2" maxlength="4000">${escape(preset?.task ?? session?.task ?? "")}</textarea>
-    </label>
-    ${unsupported.length ? `<details class="unsupported"><summary>${text("editor.unsupportedCount", { count: unsupported.length })}</summary>
-      <p>${unsupported.map((profile) => escape(profile.name)).join(", ")}</p></details>` : ""}
-    <p class="form-error" role="alert" hidden></p>
-    <div class="actions dialog-actions">
-      <button class="button primary" type="submit">${text("common.save")}</button>
-      <button class="button" type="button" data-close="editor">${text("common.cancel")}</button>
-      ${session ? `<button class="button subtle danger" type="button" data-action="remove">${text("editor.removeFromList")}</button>` : ""}
+    <div class="dialog-body">
+      <label class="field">${text("common.authentication")}
+        <select name="kind">
+          <option value="iamMfa" ${defaults.kind === "iamMfa" ? "selected" : ""}>IAM MFA</option>
+          <option value="sso" ${defaults.kind === "sso" ? "selected" : ""}>IAM Identity Center</option>
+        </select>
+      </label>
+      ${iamFields(items, defaults)}
+      ${ssoFields(defaults)}
+      <label class="field">${text("editor.displayName")}
+        <input name="label" placeholder="${text("editor.useProfileName")}" maxlength="64" value="${escape(session?.label ?? preset?.label ?? "")}" />
+      </label>
+      <label class="field">${text("common.optionalTask")}
+        <textarea name="task" rows="2" maxlength="4000">${escape(preset?.task ?? session?.task ?? "")}</textarea>
+      </label>
+      ${unsupported.length ? `<details class="unsupported"><summary>${text("editor.unsupportedCount", { count: unsupported.length })}</summary>
+        <p>${unsupported.map((profile) => escape(profile.name)).join(", ")}</p></details>` : ""}
+    </div>
+    <div class="dialog-footer">
+      <p class="form-error" role="alert" hidden></p>
+      <div class="actions dialog-actions">
+        <button class="button primary" type="submit">${text("common.save")}</button>
+        <button class="button" type="button" data-close="editor">${text("common.cancel")}</button>
+        ${session ? `<button class="button subtle danger" type="button" data-action="remove">${text("editor.removeFromList")}</button>` : ""}
+      </div>
     </div>
   </form>`;
 }

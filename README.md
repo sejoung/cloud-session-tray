@@ -28,15 +28,14 @@ The app follows your system language and supports English and Korean. Choose a d
 
 IAM MFA requires AWS CLI v2 with `aws configure mfa-login`. The app detects whether that command is available. [Install AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html) · [IAM MFA login](https://docs.aws.amazon.com/cli/latest/reference/configure/mfa-login.html) · [Identity Center setup](https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-sso.html)
 
-## Connect existing profiles and tools
+## Use existing AWS profiles
 
-- Under **AWS CLI → Local profiles**, see which profiles are defined in `config` and `credentials`. Use **Link to session** to renew the temporary profile your tools already use. For example, if your long-term key lives in `default` and your kubeconfig uses `tech`, choose `default` as the source and `tech` as the destination.
-- The AWS CLI writes temporary keys and the session token to the destination profile in the shared credentials file. If that profile has no region, the app uses the initial destination region or the source region. The **AWS CLI** screen shows the effective file paths, including overrides from `AWS_CONFIG_FILE` and `AWS_SHARED_CREDENTIALS_FILE`.
-- In **Connect tools**, copy the shell settings for Bash, Zsh, or PowerShell. Enter an EKS cluster name to generate an `aws eks update-kubeconfig` command that uses the same profile. An existing kubeconfig using that profile can reuse it after renewal. [AWS shared file format](https://docs.aws.amazon.com/sdkref/latest/guide/file-format.html) · [EKS kubeconfig](https://docs.aws.amazon.com/eks/latest/userguide/create-kubeconfig.html)
+- Under **AWS CLI → Local profiles**, see which profiles are defined in `config` and `credentials`. Use **Link to session** to renew an existing temporary profile. For example, if your long-term keys are in `default` and you use `tech` for temporary credentials, choose `default` as the source and `tech` as the destination.
+- The AWS CLI writes temporary keys and the session token to the destination profile in the shared credentials file. If that profile has no region, the app uses the initial destination region or the source region. The **AWS CLI** screen shows the effective file paths, including overrides from `AWS_CONFIG_FILE` and `AWS_SHARED_CREDENTIALS_FILE`. [AWS shared file format](https://docs.aws.amazon.com/sdkref/latest/guide/file-format.html)
 
 ## Share a profile setup
 
-Select a profile in **Sessions** and click **Export share file** to copy instructions or save a JSON file with the destination profile and task note. An IAM setup can include a source profile hint, region, and session duration. An Identity Center setup can include the sign-in URL, SSO region, account, and role. Shared files omit AWS keys, session tokens, and MFA codes.
+Select a profile in **Sessions** and click **Export share file** to copy instructions or save a JSON file with the destination profile and task note. An IAM setup can include a source profile hint, region, and session duration. An Identity Center setup can include the sign-in URL, SSO region, account, and role. AWS access key IDs, secret access keys, session tokens, and MFA codes stay on your device. The task note is shared, so keep sensitive information out of it.
 
 Teammates can preview a setup with **Import share file**. Each teammate selects their own local IAM source and MFA device or signs in through Identity Center.
 
@@ -64,7 +63,7 @@ npm run tauri build
 
 The lint suite limits source, tests, and config files to 400 lines each. It runs ESLint, dependency-cruiser, jscpd, rustfmt, and Clippy. Dependency-cruiser checks frontend dependencies, and the Rust test suite checks Rust module boundaries and cycles. Tests use temporary files and test backends in place of live AWS credentials.
 
-Install Chromium for Playwright to run the browser E2E tests and refresh the manual screenshots. The capture command writes screenshots in both languages to `docs/assets` using example data. The app and native UI share the translation keys in `locales/en.json` and `locales/ko.json`.
+Install Chromium for Playwright to run the browser E2E tests and refresh the manual screenshots. The capture command writes screenshots of the default app window in both languages to `docs/assets` using example data. To check dialog layouts in WebKit, install it with `npx playwright install webkit` and run `npx playwright test --project=webkit-layout`. The app and native UI share the translation keys in `locales/en.json` and `locales/ko.json`.
 
 ```sh
 npx playwright install chromium

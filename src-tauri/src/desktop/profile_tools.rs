@@ -6,30 +6,11 @@ use super::{
 };
 use crate::{
     model::{SHARE_FILE_LIMIT, SharedProfile},
-    state::{AppState, ConnectionCheck, ToolConnection},
+    state::AppState,
 };
 use std::{io::Write, path::Path, sync::Arc};
 use tauri::{AppHandle, Manager, State};
 use tokio::io::AsyncReadExt;
-
-#[tauri::command]
-pub(super) async fn tool_connection(
-    state: State<'_, Arc<AppState>>,
-    profile: String,
-) -> Result<ToolConnection, String> {
-    state.tool_connection(profile)
-}
-
-#[tauri::command]
-pub(super) async fn test_connection(
-    state: State<'_, Arc<AppState>>,
-    profile: String,
-) -> Result<ConnectionCheck, String> {
-    operation(
-        "External tool identity check",
-        state.test_connection(&profile).await,
-    )
-}
 
 #[tauri::command]
 pub(super) async fn prepare_shared_profile(

@@ -1,6 +1,9 @@
 import { defineConfig } from "@playwright/test";
+import tauri from "./src-tauri/tauri.conf.json" with { type: "json" };
 
 const baseURL = "http://127.0.0.1:4176";
+const [{ width, height }] = tauri.app.windows;
+const channel = process.env.CST_E2E_BROWSER_CHANNEL;
 
 export default defineConfig({
   testDir: "./tests/e2e",
@@ -10,15 +13,15 @@ export default defineConfig({
     baseURL,
     browserName: "chromium",
     locale: "ko-KR",
-    channel: process.env.CST_E2E_BROWSER_CHANNEL,
-    viewport: { width: 1100, height: 760 },
+    viewport: { width, height },
     timezoneId: "Asia/Seoul",
     reducedMotion: "reduce",
   },
   projects: [
-    { name: "chromium" },
-    { name: "manual-ko", testMatch: "manual.e2e.ts" },
-    { name: "manual-en", testMatch: "manual.e2e.ts", use: { locale: "en-US" } },
+    { name: "chromium", use: { channel } },
+    { name: "webkit-layout", testMatch: "layout.e2e.ts", use: { browserName: "webkit" } },
+    { name: "manual-ko", testMatch: "manual.e2e.ts", use: { channel } },
+    { name: "manual-en", testMatch: "manual.e2e.ts", use: { channel, locale: "en-US" } },
   ],
   webServer: {
     command: "npm run dev -- --port 4176",

@@ -42,8 +42,6 @@ pub fn run() {
             cli_release::latest_cli_version,
             installer::install_cli,
             logging::open_log_folder,
-            profile_tools::tool_connection,
-            profile_tools::test_connection,
             profile_tools::prepare_shared_profile,
             profile_tools::save_shared_profile,
             profile_tools::open_shared_profile,

@@ -57,12 +57,8 @@ test("connects and renews an IAM session, then exports and imports its settings"
   const findDevice = editor.getByRole("button", { name: labels["editor.findMfa"] });
   await expect(editor.getByRole("combobox", { name: labels["common.sourceProfile"], exact: true })).toHaveValue("work-source");
   await expect(editor.getByLabel(labels["common.targetProfile"])).toHaveValue("work-source-session");
-  if (isCapture()) {
-    const viewport = page.viewportSize()!;
-    await page.setViewportSize({ width: viewport.width, height: 880 });
-    await capture(page, "iam-mfa", findDevice);
-    await page.setViewportSize(viewport);
-  }
+  await expect(findDevice).toBeInViewport({ ratio: 1 });
+  await capture(page, "iam-mfa", findDevice);
   await findDevice.click();
   await expect(editor.getByLabel(labels["editor.mfaDevice"])).toHaveValue("arn:aws:iam::123456789012:mfa/example");
   await editor.getByLabel(labels["editor.displayName"]).fill("Development");
@@ -84,6 +80,8 @@ test("connects and renews an IAM session, then exports and imports its settings"
   await test.step("exports a share file and imports its settings", async () => {
     await exportFile.click();
     const share = page.getByRole("dialog", { name: labels["share.title"] });
+    await expect(share.getByText(labels["share.credentialsExcluded"])).toBeInViewport({ ratio: 1 });
+    await expect(share.getByLabel(labels["common.optionalTask"])).toHaveAccessibleDescription(labels["share.notePrivacy"]);
     const target = share.getByLabel(labels["common.targetProfile"]);
     await expect(target).toHaveValue("work-source-session");
     await target.fill("team-dev-session");

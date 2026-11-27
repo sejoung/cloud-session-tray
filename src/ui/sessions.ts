@@ -70,10 +70,9 @@ function sessionActions(session: Session, hasCli: boolean, requiresMfa: boolean)
   return `<div class="actions detail-actions">
     <button class="button primary" data-action="renew" ${canStart && !requiresMfa ? "" : "disabled"}>${text("common.renew")}</button>
     <button class="button" data-action="check" ${canStart ? "" : "disabled"}>${text("common.checkStatus")}</button>
-    <button class="button subtle" data-workflow="connect" ${hasCli ? "" : "disabled"}>${text("common.connectTools")}</button>
     ${session.phase ? `<button class="button subtle" data-action="cancel" ${!session.canCancel ? "disabled" : ""}>
       ${session.canCancel ? t("common.cancel") : t("common.canceling")}</button>`
-      : `<button class="button subtle" data-action="edit" ${hasCli ? "" : "disabled"}>${text("common.edit")}</button>`}
+      : `<button class="button" data-action="edit" ${hasCli ? "" : "disabled"}>${text("common.edit")}</button>`}
   </div>`;
 }
 

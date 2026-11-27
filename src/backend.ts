@@ -6,8 +6,6 @@ import type { DesktopApi } from "./desktop-api";
 export const desktop: DesktopApi = {
   dashboard: () => invoke("dashboard"),
   profiles: () => invoke("profiles"),
-  toolConnection: (profile) => invoke("tool_connection", { profile }),
-  testConnection: (profile) => invoke("test_connection", { profile }),
   prepareShare: (profile, task) => invoke("prepare_shared_profile", { profile, task }),
   saveShare: (shared) => invoke("save_shared_profile", { shared }),
   openShare: () => invoke("open_shared_profile"),

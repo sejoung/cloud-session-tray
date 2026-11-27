@@ -220,7 +220,7 @@ h3 { font-size: 15px; }
 .wizard-section p { margin-top: 5px; color: var(--muted); }
 
 .field, .check-label { font-size: 13px; font-weight: 620; }
-.field { display: grid; gap: 5px; margin-bottom: 11px; }
+.field { display: grid; grid-template-columns: minmax(0, 1fr); gap: 5px; margin-bottom: 11px; }
 .short-field { max-width: 185px; }
 .check-label { display: flex; align-items: center; gap: 6px; margin: 12px 0; }
 input, select, textarea { color: inherit; }
@@ -240,13 +240,36 @@ dialog {
   color: inherit;
   background: var(--surface);
   width: min(480px, calc(100vw - 32px));
-  max-height: calc(100vh - 36px);
-  padding: 20px 22px;
+  max-height: calc(100vh - 32px);
+  max-height: calc(100dvh - 32px);
+  padding: 0;
   box-shadow: 0 20px 70px #111b4550;
 }
+dialog[open], dialog > form { display: flex; flex-direction: column; }
+dialog[open] { overflow: hidden; }
+dialog > form { min-height: 0; }
 dialog::backdrop { background: #14244870; }
-.dialog-heading { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 14px; }
+.dialog-heading, .dialog-footer { flex: none; padding: 12px 22px; }
+.dialog-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  border-bottom: 1px solid var(--line);
+}
 .dialog-heading h2 { font-size: 22px; }
+.dialog-body {
+  min-height: 0;
+  overflow: auto;
+  padding: 12px 22px;
+  scroll-padding-block: 8px;
+  overflow-wrap: anywhere;
+}
+.dialog-body > :first-child { margin-top: 0; }
+.dialog-body > :last-child { margin-bottom: 0; }
+.dialog-footer { border-top: 1px solid var(--line); }
+.dialog-footer > [role] { max-height: 7rem; overflow: auto; overflow-wrap: anywhere; margin: 0 0 8px; }
+.dialog-footer > :empty { margin: 0; }
 .dialog-summary { margin-bottom: 15px; overflow-wrap: anywhere; }
 .dialog-summary span { color: var(--muted); margin-left: 6px; font-size: 12px; }
 .icon-button {
@@ -273,7 +296,6 @@ fieldset { padding: 0; border: 0; margin: 0; min-width: 0; }
   padding: 8px 10px;
   margin: 8px 0;
 }
-.dialog-actions { margin-top: 14px; }
 .dialog-actions .danger { margin-left: auto; }
 .flash {
   position: fixed;
@@ -311,7 +333,5 @@ textarea { resize: vertical; }
 .profile-actions .button { min-height: 28px; padding: 4px 7px; font-size: 12px; }
 .card-heading .actions { margin-top: 0; }
 .field-hint { margin: -4px 0 12px; color: var(--muted); font-size: 12px; }
-.tool-eks { margin: 12px 0; }
-.tool-eks summary { cursor: pointer; margin-bottom: 10px; }
 .task-note { padding: 9px 11px; margin-bottom: 12px; border-radius: 8px; background: #f1f4fc; }
 .task-note p { white-space: pre-wrap; overflow-wrap: anywhere; }

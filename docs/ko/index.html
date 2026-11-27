@@ -38,7 +38,7 @@
           <a class="install-link" href="#installation">설치 방법 보기</a>
         </div>
         <figure class="hero-shot">
-          <img src="../assets/sessions.png" width="1100" height="760" alt="사용 가능한 AWS 세션과 갱신 버튼이 표시된 Cloud Session Tray" fetchpriority="high">
+          <img src="../assets/sessions.png" width="1000" height="720" alt="사용 가능한 AWS 세션과 갱신 버튼이 표시된 Cloud Session Tray" fetchpriority="high">
           <figcaption>예시 데이터로 캡처한 세션 화면</figcaption>
         </figure>
       </div>
@@ -61,6 +61,7 @@
     <section class="wrap manual" id="manual">
       <h2 class="section-title">AWS 세션 사용 매뉴얼</h2>
       <p>AWS CLI를 연결한 다음, 계정에 맞는 인증 방식으로 세션을 추가하세요.</p>
+      <p>대화상자가 길면 본문을 스크롤해 나머지 항목을 확인하세요. 제목과 하단 버튼은 계속 보입니다.</p>
       <nav class="manual-nav" aria-label="매뉴얼 목차">
         <a href="#aws-cli">AWS CLI</a>
         <a href="#iam">IAM MFA</a>
@@ -80,7 +81,7 @@
           </ol>
         </div>
         <figure>
-          <a class="screenshot" href="../assets/cli.png"><img src="../assets/cli.png" width="1100" height="760" loading="lazy" alt="공식 설치 파일 받기 버튼이 강조된 AWS CLI 화면"></a>
+          <a class="screenshot" href="../assets/cli.png"><img src="../assets/cli.png" width="1000" height="720" loading="lazy" alt="공식 설치 파일 받기 버튼이 강조된 AWS CLI 화면"></a>
           <figcaption>AWS CLI v2를 찾지 못하면 설치 버튼이 표시됩니다.</figcaption>
         </figure>
       </article>
@@ -97,11 +98,11 @@
         </div>
         <div class="screenshots">
           <figure>
-            <a class="screenshot" href="../assets/iam-register.png"><img src="../assets/iam-register.png" width="1100" height="760" loading="lazy" alt="프로필 이름, 액세스 키, 기본 리전을 입력하는 IAM 등록 창"></a>
+            <a class="screenshot" href="../assets/iam-register.png"><img src="../assets/iam-register.png" width="1000" height="720" loading="lazy" alt="프로필 이름, 액세스 키, 기본 리전을 입력하는 IAM 등록 창"></a>
             <figcaption>액세스 키로 IAM 원본 프로필을 등록합니다.</figcaption>
           </figure>
           <figure>
-            <a class="screenshot" href="../assets/iam-mfa.png"><img src="../assets/iam-mfa.png" width="1100" height="880" loading="lazy" alt="원본과 갱신 대상 프로필, MFA 장치 찾기 버튼이 표시된 MFA 설정 창"></a>
+            <a class="screenshot" href="../assets/iam-mfa.png"><img src="../assets/iam-mfa.png" width="1000" height="720" loading="lazy" alt="원본과 갱신 대상 프로필, MFA 장치 찾기 버튼이 표시된 MFA 설정 창"></a>
             <figcaption>갱신 대상과 MFA 장치를 지정합니다.</figcaption>
           </figure>
         </div>
@@ -117,7 +118,7 @@
           </ol>
         </div>
         <figure>
-          <a class="screenshot" href="../assets/sso.png"><img src="../assets/sso.png" width="1100" height="760" loading="lazy" alt="Identity Center 프로필 선택과 SSO 마법사 열기 버튼이 보이는 설정 창"></a>
+          <a class="screenshot" href="../assets/sso.png"><img src="../assets/sso.png" width="1000" height="720" loading="lazy" alt="Identity Center 프로필 선택과 SSO 마법사 열기 버튼이 보이는 설정 창"></a>
           <figcaption>기존 프로필을 선택하거나 SSO 마법사를 엽니다.</figcaption>
         </figure>
       </article>
@@ -132,7 +133,7 @@
           <p>IAM MFA 세션이 만료되기 전에 알림을 받으려면 <strong>설정</strong>에서 <strong>만료 알림</strong>을 켜고 상단의 <strong>설정 저장</strong>을 누르세요.</p>
         </div>
         <figure>
-          <a class="screenshot" href="../assets/renew.png"><img src="../assets/renew.png" width="1100" height="760" loading="lazy" alt="MFA 인증 코드 6자리 입력을 요청하는 IAM MFA 갱신 창"></a>
+          <a class="screenshot" href="../assets/renew.png"><img src="../assets/renew.png" width="1000" height="720" loading="lazy" alt="MFA 인증 코드 6자리 입력을 요청하는 IAM MFA 갱신 창"></a>
           <figcaption>MFA 장치에 표시된 현재 코드를 입력합니다.</figcaption>
         </figure>
       </article>
@@ -145,10 +146,10 @@
             <li>공유할 설정을 확인하고, 필요한 경우 프로필 이름이나 작업 메모를 수정합니다.</li>
             <li>창에서 <strong>공유 파일 내보내기</strong>를 눌러 JSON 파일을 저장한 뒤 팀원에게 전달합니다. 설정 절차를 텍스트로도 전달하려면 <strong>안내 복사</strong>를 누릅니다.</li>
           </ol>
-          <p>공유 파일에는 프로필 설정과 작업 메모가 담깁니다. AWS 액세스 키, 세션 토큰, MFA 코드는 기기에 남습니다.</p>
+          <p>공유 파일에는 프로필 설정과 작업 메모가 담깁니다. AWS 액세스 키 ID, 시크릿 액세스 키, 세션 토큰, MFA 코드는 기기에 남습니다. 작업 메모에 민감한 정보를 입력하지 마세요.</p>
         </div>
         <figure>
-          <a class="screenshot" href="../assets/share-export.png"><img src="../assets/share-export.png" width="1100" height="760" loading="lazy" alt="프로필 이름, 작업 메모와 공유 파일 내보내기 버튼이 표시된 미리보기 창"></a>
+          <a class="screenshot" href="../assets/share-export.png"><img src="../assets/share-export.png" width="1000" height="720" loading="lazy" alt="프로필 이름, 작업 메모와 공유 파일 내보내기 버튼이 표시된 미리보기 창"></a>
           <figcaption>파일을 저장하기 전에 팀원에게 전달할 내용을 확인합니다.</figcaption>
         </figure>
       </article>
@@ -163,7 +164,7 @@
           </ol>
         </div>
         <figure>
-          <a class="screenshot" href="../assets/share-import.png"><img src="../assets/share-import.png" width="1100" height="760" loading="lazy" alt="공유 파일의 설정과 IAM 설정 열기 버튼이 표시된 가져오기 미리보기 창"></a>
+          <a class="screenshot" href="../assets/share-import.png"><img src="../assets/share-import.png" width="1000" height="720" loading="lazy" alt="공유 파일의 설정과 IAM 설정 열기 버튼이 표시된 가져오기 미리보기 창"></a>
           <figcaption>본인의 AWS 자격 증명을 연결하기 전에 가져올 설정을 확인합니다.</figcaption>
         </figure>
       </article>

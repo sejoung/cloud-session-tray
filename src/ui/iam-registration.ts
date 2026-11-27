@@ -14,22 +14,26 @@ export function showIamRegistration(
       <h2 id="registration-title">${text("common.openIamRegistration")}</h2>
       <button type="button" class="icon-button" data-close="registration" aria-label="${text("common.close")}">×</button>
     </div>
-    <p class="dialog-summary">${text("iam.description")}</p>
-    <label class="field">${text("common.profileName")}
-      <input name="name" required maxlength="256" autofocus />
-    </label>
-    <label class="field">${text("iam.accessKeyId")}
-      <input name="accessKeyId" type="password" required minlength="16" maxlength="128" autocomplete="off" />
-    </label>
-    <label class="field">${text("iam.secretKey")}
-      <input name="secretAccessKey" type="password" required minlength="16" maxlength="256" autocomplete="off" />
-    </label>
-    ${regionField(t("iam.defaultRegion"), t("iam.noRegion"), region)}
-    <p class="field-hint">${text("iam.outputFormat")}</p>
-    <p class="form-error" role="alert" hidden></p>
-    <div class="actions dialog-actions">
-      <button class="button primary" type="submit">${text("common.register")}</button>
-      <button class="button" type="button" data-close="registration">${text("common.cancel")}</button>
+    <div class="dialog-body">
+      <p class="dialog-summary">${text("iam.description")}</p>
+      <label class="field">${text("common.profileName")}
+        <input name="name" required maxlength="256" autofocus />
+      </label>
+      <label class="field">${text("iam.accessKeyId")}
+        <input name="accessKeyId" type="password" required minlength="16" maxlength="128" autocomplete="off" />
+      </label>
+      <label class="field">${text("iam.secretKey")}
+        <input name="secretAccessKey" type="password" required minlength="16" maxlength="256" autocomplete="off" />
+      </label>
+      ${regionField(t("iam.defaultRegion"), t("iam.noRegion"), region)}
+      <p class="field-hint">${text("iam.outputFormat")}</p>
+    </div>
+    <div class="dialog-footer">
+      <p class="form-error" role="alert" hidden></p>
+      <div class="actions dialog-actions">
+        <button class="button primary" type="submit">${text("common.register")}</button>
+        <button class="button" type="button" data-close="registration">${text("common.cancel")}</button>
+      </div>
     </div>
   </form>`;
 

@@ -1,14 +1,16 @@
 import { mountApplication } from "../../src/app";
 import type { DesktopApi } from "../../src/desktop-api";
-import { profileName, type Dashboard, type Profile, type SharedProfile } from "../../src/domain";
+import { profileName, type Dashboard, type Profile, type Session, type SharedProfile } from "../../src/domain";
 import { element } from "../../src/ui/html";
 import "../../src/style.css";
 
-const sso = new URLSearchParams(location.search).get("scenario") === "sso";
+const scenario = new URLSearchParams(location.search).get("scenario");
+const sso = scenario === "sso";
+const layout = scenario === "layout";
 const cli = { path: "/usr/local/bin/aws", version: "2.42.4", v2: true, mfaSupported: true };
 const device = "arn:aws:iam::123456789012:mfa/example";
 const dashboard: Dashboard = {
-  cli: sso ? cli : null,
+  cli: sso || layout ? cli : null,
   preferredPath: null,
   files: { config: "~/.aws/config", credentials: "~/.aws/credentials" },
   sessions: [],
@@ -29,7 +31,23 @@ function profile(name: string, kind: "sso" | "iamSource", region: string | null)
 
 const ssoProfile = profile("team-dev", "sso", "ap-northeast-2");
 const profiles = sso ? [ssoProfile] : [];
-let cliInstalled = sso;
+if (layout) {
+  const path = `/example/${"long-workspace-name".repeat(8)}/.aws`;
+  dashboard.files = { config: `${path}/config`, credentials: `${path}/credentials` };
+  profiles.push(profile("work-source", "iamSource", "us-gov-west-1"), ssoProfile);
+  const examples: Pick<Session, "id" | "login" | "label">[] = [
+    { id: "example-iam", label: "Development", login: {
+      kind: "iamMfa", source: "work-source", target: `dev-${"long-profile-name".repeat(12)}`,
+      region: "us-gov-west-1", device, duration: 43200,
+    } },
+    { id: "example-sso", label: "Development SSO", login: { kind: "sso", profile: ssoProfile.name } },
+  ];
+  dashboard.sessions = examples.map((example) => ({
+    ...example, status: "unknown", task: "Review the development deployment.\n".repeat(80),
+    phase: null, canCancel: false, checkedAt: null, identity: null, expiresAt: null, checkMessage: null, activity: null,
+  }));
+}
+let cliInstalled = Boolean(dashboard.cli);
 let shareFile: string | undefined;
 const unavailable = async () => { throw new Error("Unexpected desktop action in browser test"); };
 
@@ -77,15 +95,20 @@ const api: DesktopApi = {
   setSystemLanguage: unavailable,
   openLogFolder: unavailable,
   openDocs: unavailable,
-  toolConnection: unavailable,
-  testConnection: unavailable,
   prepareShare: async (name, task) => {
-    const session = dashboard.sessions.find(({ login }) => login.kind === "iamMfa" && login.target === name);
-    if (!session || session.login.kind !== "iamMfa") throw new Error(`No example IAM session for ${name}`);
+    const session = dashboard.sessions.find(({ login }) => profileName(login) === name);
+    if (!session) throw new Error(`No example session for ${name}`);
+    const summary = { version: 1, profile: name, label: session.label, task };
+    if (session.login.kind === "sso") {
+      return { ...summary, region: ssoProfile.region, authentication: { kind: "sso", settings: {
+        startUrl: `https://identity.awsapps.com/start/${"example".repeat(28)}`,
+        ssoRegion: "us-east-1", accountId: "123456789012", roleName: "ReadOnly", session: null,
+      } } };
+    }
     const { source, duration, region } = session.login;
     const sourceRegion = profiles.find((item) => item.name === source)?.region;
     return {
-      version: 1, profile: name, label: session.label, task, region: region ?? sourceRegion ?? null,
+      ...summary, region: region ?? sourceRegion ?? null,
       authentication: { kind: "iamMfa", sourceHint: source, duration },
     };
   },

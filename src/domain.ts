@@ -85,19 +85,3 @@ export type SharedProfile = {
         session: { name: string; scopes: string | null } | null;
       } };
 };
-
-export type ToolConnection = {
-  profile: string;
-  cli: string;
-  config: string;
-  credentials: string;
-  region: string | null;
-  regionConfigured: boolean;
-  kind: Profile["kind"];
-};
-
-export type ConnectionCheck = {
-  status: Status;
-  identity: Session["identity"];
-  message: string | null;
-};
