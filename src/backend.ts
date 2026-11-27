@@ -13,7 +13,12 @@ export const desktop: DesktopApi = {
   mfaDevices: (source) => invoke("mfa_devices", { source }),
   registerIam: (registration) => invoke("register_iam", { registration }),
   configureSso: () => invoke("configure_sso"),
-  cli: (command) => invoke(command),
+  cli: (command, path) => {
+    if (command === "enable_terminal_path" || command === "disable_terminal_path") {
+      return invoke("set_terminal_path", { enabled: command === "enable_terminal_path" });
+    }
+    return invoke(command, path ? { path } : undefined);
+  },
   session: (command, id) => invoke(command, { id }),
   saveSession: ({ id, label, login, task }) => invoke("save_session", { id, label, login, task }),
   renewMfa: (id, otp) => invoke("renew_mfa", { id, otp }),

@@ -1,9 +1,11 @@
 use super::{
     arguments::args,
+    installations::Installation,
     process::{Cancel, run},
 };
 use crate::model::Cli;
 use std::{
+    cmp::Reverse,
     env,
     path::{Path, PathBuf},
     time::Duration,
@@ -21,10 +23,17 @@ pub async fn inspect(path: &Path) -> Option<Cli> {
         return None;
     }
     let cancel = Cancel::new();
-    let timeout = Duration::from_secs(6);
-    let output = run(path, None, &args(&["--version"]), timeout, &cancel, None)
-        .await
-        .ok()?;
+    // A freshly installed executable can take longer to start on its first invocation.
+    let output = run(
+        path,
+        None,
+        &args(&["--version"]),
+        Duration::from_secs(15),
+        &cancel,
+        None,
+    )
+    .await
+    .ok()?;
     if !output.status.success() {
         return None;
     }
@@ -54,7 +63,7 @@ pub async fn inspect(path: &Path) -> Option<Cli> {
                 "--duration-seconds",
                 "cloud-session-tray-probe",
             ]),
-            timeout,
+            Duration::from_secs(6),
             &cancel,
             None,
         )
@@ -76,28 +85,46 @@ pub async fn inspect(path: &Path) -> Option<Cli> {
     })
 }
 
-pub async fn discover(preferred: Option<&Path>, home: &Path) -> Option<Cli> {
-    if let Some(path) = preferred
-        && let Some(cli) = inspect(path).await
-    {
-        return Some(cli);
-    }
-    let mut fallback: Option<Cli> = None;
+pub async fn discover(
+    preferred: Option<&Path>,
+    home: &Path,
+    terminal_alias: &Path,
+) -> Vec<Installation> {
+    let paths = candidates(home)
+        .into_iter()
+        .filter(|path| path != terminal_alias)
+        .collect();
+    scan_cli(preferred.filter(|path| *path != terminal_alias), paths)
+        .await
+        .into_iter()
+        .map(|cli| Installation::detect(cli, home))
+        .collect()
+}
+
+async fn scan_cli(preferred: Option<&Path>, paths: Vec<PathBuf>) -> Vec<Cli> {
+    let mut found = Vec::new();
     let mut seen = std::collections::HashSet::new();
-    for path in candidates(home) {
+    for path in preferred.map(Path::to_path_buf).into_iter().chain(paths) {
         if !seen.insert(path.canonicalize().unwrap_or_else(|_| path.clone())) {
             continue;
         }
         if let Some(cli) = inspect(&path).await {
-            if cli.mfa_supported {
-                return Some(cli);
-            }
-            if fallback.as_ref().is_none_or(|found| !found.v2 && cli.v2) {
-                fallback = Some(cli);
-            }
+            found.push(cli);
         }
     }
-    fallback
+    found.sort_by_key(|cli| Reverse((Some(cli.path.as_path()) == preferred, discovery_rank(cli))));
+    found
+}
+
+fn discovery_rank(cli: &Cli) -> (bool, bool, [u32; 3]) {
+    let mut parts = cli.version.split('.');
+    let version = std::array::from_fn(|_| {
+        parts
+            .next()
+            .and_then(|part| part.parse().ok())
+            .unwrap_or_default()
+    });
+    (cli.v2, cli.mfa_supported, version)
 }
 
 #[cfg_attr(
@@ -118,6 +145,8 @@ fn candidates(home: &Path) -> Vec<PathBuf> {
         .collect();
     #[cfg(target_os = "macos")]
     {
+        use super::installations::{BREW_FORMULAS, BREW_PREFIXES};
+
         paths.extend([
             home.join(".local/bin/aws"),
             home.join(".local/share/aws-cli/aws"),
@@ -134,6 +163,12 @@ fn candidates(home: &Path) -> Vec<PathBuf> {
             .into_iter()
             .map(PathBuf::from),
         );
+        for prefix in BREW_PREFIXES {
+            paths.extend(
+                BREW_FORMULAS
+                    .map(|formula| Path::new(prefix).join("opt").join(formula).join("bin/aws")),
+            );
+        }
     }
     #[cfg(windows)]
     {
@@ -161,4 +196,54 @@ fn candidates(home: &Path) -> Vec<PathBuf> {
         );
     }
     paths
+}
+
+#[cfg(all(test, unix))]
+mod tests {
+    use super::*;
+    use std::{fs, os::unix::fs::PermissionsExt};
+
+    fn executable(dir: &Path, name: &str, version: &str, mfa: bool) -> PathBuf {
+        let path = dir.join(name);
+        let probe = if mfa {
+            "echo cloud-session-tray-probe >&2"
+        } else {
+            ":"
+        };
+        fs::write(
+            &path,
+            format!(
+                "#!/bin/sh\ncase \"$1\" in\n  --version) echo aws-cli/{version} ;;\n  *) {probe}; exit 2 ;;\nesac\n"
+            ),
+        )
+        .unwrap();
+        fs::set_permissions(&path, fs::Permissions::from_mode(0o700)).unwrap();
+        path
+    }
+
+    #[tokio::test]
+    async fn picks_the_newest_compatible_cli_across_installation_paths() {
+        let dir = tempfile::tempdir().unwrap();
+        let older = executable(dir.path(), "user-cli", "2.9.0", true);
+        let updated = executable(dir.path(), "system-cli", "2.42.4", true);
+        let same_version = executable(dir.path(), "alternate-cli", "2.42.4", true);
+        let no_mfa = executable(dir.path(), "limited-cli", "2.50.0", false);
+        let paths = vec![older, updated.clone(), same_version, no_mfa];
+
+        let found = scan_cli(None, paths).await;
+        assert_eq!(found.len(), 4);
+        assert_eq!(found[0].path, updated);
+    }
+
+    #[tokio::test]
+    async fn respects_an_explicit_executable_selection() {
+        let dir = tempfile::tempdir().unwrap();
+        let pinned = executable(dir.path(), "pinned-cli", "2.40.4", true);
+        let updated = executable(dir.path(), "system-cli", "2.42.4", true);
+        let found = scan_cli(Some(&pinned), vec![updated]).await;
+        let selected = &found[0];
+
+        assert_eq!(selected.path, pinned);
+        assert_eq!(selected.version, "2.40.4");
+    }
 }

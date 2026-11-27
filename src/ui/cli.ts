@@ -1,5 +1,5 @@
 import { localizeMessage, t, type MessageKey } from "./i18n";
-import type { Dashboard, Profile } from "../domain";
+import type { CliInstallation, Dashboard, Profile } from "../domain";
 import { escape, fact, header, notice, text } from "./html";
 
 export type InstallerState = "idle" | "downloading" | "opened";
@@ -18,6 +18,13 @@ const profileKeys: Record<Exclude<Profile["kind"], "sso">, MessageKey> = {
   iamSession: "cli.iamSession",
   unconfigured: "cli.unconfigured",
   unsupported: "cli.unsupported",
+};
+
+const installationSources: Record<CliInstallation["source"], MessageKey> = {
+  homebrew: "cli.sourceHomebrew",
+  awsUser: "cli.sourceAwsUser",
+  awsInstaller: "cli.sourceAwsInstaller",
+  unknown: "cli.sourceUnknown",
 };
 
 function cliTitle(state: Dashboard): string {
@@ -39,17 +46,26 @@ function installerNotices(state: Dashboard, installer: InstallerState, update: s
   const messages: string[] = [];
   if (state.preferredPath && state.cli?.path !== state.preferredPath) {
     messages.push(notice(t("cli.fallbackPath"), true));
+  } else if (state.preferredPath && update) {
+    messages.push(notice(t("cli.selectedPathUpdate")));
   }
-  if (!state.scanning && !state.cli?.v2) {
-    messages.push(notice(t("cli.installHelp"), true));
-  } else if (!state.scanning && !state.cli?.mfaSupported) {
-    messages.push(notice(t("cli.mfaNotDetected"), true));
+  if (!state.scanning) {
+    if (!state.cli?.v2) messages.push(notice(t("cli.installHelp"), true));
+    else if (!state.cli.mfaSupported) messages.push(notice(t("cli.mfaNotDetected"), true));
   }
-  if (update) messages.push(notice(t("cli.updateAvailable", { version: update })));
+  if (update) {
+    messages.push(notice(t("cli.updateAvailable", { version: update })));
+    const source = activeInstallation(state)?.source;
+    if (source === "homebrew" || source === "awsUser") messages.push(notice(t("cli.separateInstaller"), true));
+  }
   if (installer === "opened") {
     messages.push(notice(t("cli.installerOpened")));
   }
   return messages.join("");
+}
+
+function activeInstallation(state: Dashboard): CliInstallation | undefined {
+  return state.cliInstallations.find((item) => item.path === state.cli?.path);
 }
 
 function installerActions(state: Dashboard, options: CliViewOptions, downloadLabel: string): string {
@@ -65,6 +81,15 @@ function installerActions(state: Dashboard, options: CliViewOptions, downloadLab
     </div>`;
 }
 
+function installerHeading(state: Dashboard, upToDate: boolean): string {
+  const cli = state.cli;
+  const active = activeInstallation(state);
+  return `<div class="card-heading"><div><h2>${cliTitle(state)}</h2>
+    <p class="mono path">${escape(cli?.path ?? t("cli.unknownLocation"))}</p>
+    ${active ? `<p class="installation-path">${text(installationSources[active.source])}</p>` : ""}</div>
+    ${cli?.v2 && !state.scanning ? `<span class="badge available"><span class="dot"></span>${upToDate ? t("cli.upToDate") : t("cli.connected")}</span>` : ""}</div>`;
+}
+
 function installerCard(state: Dashboard, options: CliViewOptions): string {
   const { installerState, latestCliVersion } = options;
   const cli = state.cli;
@@ -75,11 +100,53 @@ function installerCard(state: Dashboard, options: CliViewOptions): string {
     : !cli?.v2 ? t("cli.download")
     : update ? t("cli.openUpdate") : "";
   return `<section class="card section-card">
-    <div class="card-heading"><div><h2>${cliTitle(state)}</h2>
-    <p class="mono path">${escape(cli?.path ?? t("cli.unknownLocation"))}</p></div>
-    ${cli?.v2 && !state.scanning ? `<span class="badge available"><span class="dot"></span>${order === 0 ? t("cli.upToDate") : t("cli.connected")}</span>` : ""}</div>
+    ${installerHeading(state, order === 0)}
     ${installerNotices(state, installerState, update)}
     ${installerActions(state, options, downloadLabel)}
+  </section>`;
+}
+
+function installationRow(item: CliInstallation, active: boolean, busy: boolean): string {
+  const path = escape(item.path);
+  const disabled = busy ? "disabled" : "";
+  return `<li class="profile-row">
+    <span class="profile-name">
+      <strong>AWS CLI v${escape(item.version)}</strong> · ${text(installationSources[item.source])}
+      <span class="mono installation-path">${path}</span>
+    </span>
+    ${active ? `<span class="badge available"><span class="dot"></span>${text("cli.installationInUse")}</span>`
+      : `<div class="profile-actions">
+        ${item.v2 ? `<button class="button" data-action="choose" data-path="${path}" ${disabled}>${text("cli.useInstallation")}</button>` : ""}
+        ${item.canRemove ? `<button class="button danger" data-action="remove-cli" data-path="${path}" ${disabled}>${text("common.remove")}</button>`
+          : item.source === "awsInstaller" ? `<button class="button" data-docs="uninstallation">${text("cli.uninstallDocs")}</button>` : ""}
+      </div>`}
+  </li>`;
+}
+
+function installationsCard(state: Dashboard, busy: boolean): string {
+  if (state.cliInstallations.length < 2) return "";
+  return `<section class="card section-card" aria-labelledby="cli-installations">
+    <h2 id="cli-installations">${text("cli.installations", { count: state.cliInstallations.length })}</h2>
+    <ul class="catalog cli-installations">${state.cliInstallations
+      .map((item) => installationRow(item, item.path === state.cli?.path, busy || state.scanning)).join("")}</ul>
+  </section>`;
+}
+
+function terminalPathCard(state: Dashboard, busy: boolean): string {
+  const { enabled, supported, error } = state.terminalPath;
+  if (!enabled && (!supported || !state.cli?.v2)) return "";
+  return `<section class="card section-card" aria-labelledby="terminal-path-title">
+    <div class="card-heading">
+      <h2 id="terminal-path-title">${text("cli.terminalPath")}</h2>
+      ${enabled && !error ? `<span class="badge available"><span class="dot"></span>${text("cli.terminalPathEnabled")}</span>` : ""}
+    </div>
+    <p class="muted">${text("cli.terminalPathHelp")}</p>
+    ${error ? notice(localizeMessage(error), true) : ""}
+    <div class="actions">
+      <button class="button" data-action="terminal-path" ${busy || state.scanning ? "disabled" : ""}>
+        ${text(enabled ? "cli.terminalPathRemove" : "cli.terminalPathApply")}
+      </button>
+    </div>
   </section>`;
 }
 
@@ -142,5 +209,6 @@ function profilesCard(state: Dashboard, { profiles, wizardBusy }: CliViewOptions
 
 export function cliPage(state: Dashboard, options: CliViewOptions): string {
   return header("AWS CLI", t("cli.description"))
-    + installerCard(state, options) + profilesCard(state, options);
+    + installerCard(state, options) + installationsCard(state, options.cliBusy)
+    + terminalPathCard(state, options.cliBusy) + profilesCard(state, options);
 }

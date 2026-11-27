@@ -1,6 +1,6 @@
 use super::storage::{load_settings, save_settings};
 use crate::{
-    cli::Cancel,
+    cli::{Cancel, Installation},
     model::{Cli, Language, Phase, Session, Settings},
     profiles::Files,
 };
@@ -22,6 +22,7 @@ pub(super) struct Data {
     pub(super) settings: Settings,
     system_language: Language,
     pub(super) cli: Option<Cli>,
+    pub(super) installations: Vec<Installation>,
     pub(super) scanning: bool,
     pub(super) wizard: bool,
     pub(super) closing: bool,
@@ -29,12 +30,13 @@ pub(super) struct Data {
     pub(super) activity: BTreeMap<String, Vec<String>>,
     pub(super) profiles_error: Option<String>,
     pub(super) settings_error: Option<String>,
+    pub(super) terminal_path_error: Option<String>,
 }
 
 pub struct AppState {
     pub files: Files,
     pub(super) home: PathBuf,
-    settings_path: PathBuf,
+    pub(super) settings_path: PathBuf,
     pub(super) runtime: Handle,
     data: Mutex<Data>,
     pub(super) discovery: AsyncMutex<()>,
@@ -69,6 +71,7 @@ impl AppState {
                 settings,
                 system_language: Language::En,
                 cli: None,
+                installations: Vec::new(),
                 scanning: true,
                 wizard: false,
                 closing: false,
@@ -76,6 +79,7 @@ impl AppState {
                 activity: BTreeMap::new(),
                 profiles_error: None,
                 settings_error,
+                terminal_path_error: None,
             }),
             discovery: AsyncMutex::new(()),
             aws_files: AsyncMutex::new(()),

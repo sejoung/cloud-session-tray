@@ -80,11 +80,20 @@
             <li>If the app cannot find the CLI, choose <strong>Get official installer</strong> and complete the installation.</li>
             <li>Click <strong>Scan again</strong>. For a custom install location, use <strong>Select executable</strong>.</li>
           </ol>
+          <p>Automatic discovery prefers AWS CLI v2 with IAM MFA support and chooses the newest version among equally capable installations. If you selected a path manually, click <strong>Use automatic discovery</strong> to clear that selection.</p>
+          <p>If multiple installations are detected, check their versions, paths, and installation sources under <strong>Detected AWS CLI installations</strong>. Use <strong>Use this version</strong> to switch. The app can remove an inactive Homebrew installation through Homebrew or remove the default macOS user installation from the AWS install script. Installer-managed copies link to the AWS removal guide.</p>
+          <p>On macOS with zsh or Bash, click <strong>Apply to terminal PATH</strong> and reopen your terminal. New tabs follow the app’s AWS CLI selection. To remove the PATH setting, click <strong>Unlink terminal PATH</strong>.</p>
         </div>
-        <figure>
-          <a class="screenshot" href="assets/en/cli.png"><img src="assets/en/cli.png" width="1000" height="720" loading="lazy" alt="AWS CLI screen with the official installer button highlighted"></a>
-          <figcaption>The installer button appears when the app cannot find AWS CLI v2.</figcaption>
-        </figure>
+        <div class="screenshots">
+          <figure>
+            <a class="screenshot" href="assets/en/cli.png"><img src="assets/en/cli.png" width="1000" height="720" loading="lazy" alt="AWS CLI screen with the official installer button highlighted"></a>
+            <figcaption>The installer button appears when the app cannot find AWS CLI v2.</figcaption>
+          </figure>
+          <figure>
+            <a class="screenshot" href="assets/en/cli-installations.png"><img src="assets/en/cli-installations.png" width="1000" height="720" loading="lazy" alt="Two AWS CLI installations with their versions, paths, and the active installation marked"></a>
+            <figcaption>Check which installation the app is using before removing a duplicate.</figcaption>
+          </figure>
+        </div>
       </article>
 
       <article class="step" id="iam">

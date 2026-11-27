@@ -7,6 +7,7 @@ mod jobs;
 mod renewal_region;
 mod renewals;
 mod storage;
+mod terminal_path;
 mod transfers;
 
 pub use core::AppState;

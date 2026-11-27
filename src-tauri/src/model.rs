@@ -188,6 +188,7 @@ impl Default for Preferences {
 #[serde(rename_all = "camelCase", default)]
 pub struct Settings {
     pub cli_path: Option<PathBuf>,
+    pub terminal_path_files: Vec<PathBuf>,
     pub preferences: Preferences,
     pub sessions: Vec<Session>,
     pub checks: BTreeMap<String, Check>,

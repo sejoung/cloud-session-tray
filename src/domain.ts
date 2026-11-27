@@ -33,8 +33,15 @@ export type Session = {
   activity: string[] | null;
   canCancel: boolean;
 };
+type CliExecutable = { path: string; version: string; v2: boolean; mfaSupported: boolean };
+export type CliInstallation = CliExecutable & {
+  source: "homebrew" | "awsUser" | "awsInstaller" | "unknown";
+  canRemove: boolean;
+};
 export type Dashboard = {
-  cli: { path: string; version: string; v2: boolean; mfaSupported: boolean } | null;
+  cli: CliExecutable | null;
+  cliInstallations: CliInstallation[];
+  terminalPath: { supported: boolean; enabled: boolean; error: string | null };
   preferredPath: string | null;
   files: { config: string; credentials: string };
   sessions: Session[];

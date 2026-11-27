@@ -1,3 +1,4 @@
+mod cli_installations;
 mod cli_release;
 mod commands;
 mod dialogs;
@@ -26,6 +27,8 @@ pub fn run() {
             commands::rescan_cli,
             commands::choose_cli,
             commands::reset_cli,
+            cli_installations::remove_cli,
+            cli_installations::set_terminal_path,
             commands::profiles,
             commands::mfa_devices,
             commands::register_iam,

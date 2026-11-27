@@ -79,11 +79,20 @@
             <li>CLI를 찾을 수 없다는 안내가 나오면 <strong>공식 설치 파일 받기</strong>를 눌러 설치합니다.</li>
             <li><strong>다시 탐색</strong>을 누릅니다. 다른 경로에 설치했다면 <strong>실행 파일 선택</strong>으로 연결하세요.</li>
           </ol>
+          <p>자동 탐색은 IAM MFA 갱신을 지원하는 AWS CLI v2를 우선하며, 지원 조건이 같으면 가장 최신 버전을 사용합니다. 직접 선택한 경로를 해제하려면 <strong>자동 탐색 사용</strong>을 누르세요.</p>
+          <p>여러 설치본이 있으면 <strong>감지한 AWS CLI 설치본</strong>에서 버전, 경로, 설치 방식을 확인합니다. <strong>이 버전 사용</strong>으로 전환할 수 있습니다. 사용하지 않는 Homebrew 설치본은 Homebrew로, AWS 설치 스크립트의 macOS 기본 사용자 설치본은 앱에서 제거할 수 있습니다. 공식 설치 파일로 설치한 경우에는 AWS 제거 안내를 엽니다.</p>
+          <p>macOS의 zsh 또는 Bash에서는 <strong>터미널 PATH에도 적용</strong>을 누른 뒤 터미널 탭을 다시 여세요. 이후 새 탭은 앱에서 선택한 AWS CLI를 사용합니다. 설정을 되돌리려면 <strong>터미널 PATH 연동 해제</strong>를 누릅니다.</p>
         </div>
-        <figure>
-          <a class="screenshot" href="../assets/cli.png"><img src="../assets/cli.png" width="1000" height="720" loading="lazy" alt="공식 설치 파일 받기 버튼이 강조된 AWS CLI 화면"></a>
-          <figcaption>AWS CLI v2를 찾지 못하면 설치 버튼이 표시됩니다.</figcaption>
-        </figure>
+        <div class="screenshots">
+          <figure>
+            <a class="screenshot" href="../assets/cli.png"><img src="../assets/cli.png" width="1000" height="720" loading="lazy" alt="공식 설치 파일 받기 버튼이 강조된 AWS CLI 화면"></a>
+            <figcaption>AWS CLI v2를 찾지 못하면 설치 버튼이 표시됩니다.</figcaption>
+          </figure>
+          <figure>
+            <a class="screenshot" href="../assets/cli-installations.png"><img src="../assets/cli-installations.png" width="1000" height="720" loading="lazy" alt="두 AWS CLI 설치본의 버전과 경로, 사용 중인 설치본을 표시한 화면"></a>
+            <figcaption>중복 설치본을 제거하기 전에 사용 중인 실행 파일을 확인합니다.</figcaption>
+          </figure>
+        </div>
       </article>
 
       <article class="step" id="iam">

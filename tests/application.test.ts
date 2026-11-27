@@ -236,6 +236,16 @@ describe("Desktop controls", () => {
     expect(api.installCli).not.toHaveBeenCalled();
   });
 
+  it("explains how to switch when the selected executable has an update", async () => {
+    const { api } = backend({ preferredPath: cli.path });
+    api.latestCliVersion.mockResolvedValue("2.42.4");
+    mount(api);
+    await click('nav [data-page="cli"]');
+
+    await vi.waitFor(() => expect(element(document, "#content").textContent).toContain("직접 선택한 경로를 사용 중입니다."));
+    expect(element(document, '[data-action="auto-cli"]').textContent).toContain("자동 탐색 사용");
+  });
+
   it("waits for discovery before offering installation when only CLI v1 is present", async () => {
     const { api, dashboard } = backend({ cli: null, scanning: true });
     mount(api);

@@ -7,10 +7,17 @@ import "../../src/style.css";
 const scenario = new URLSearchParams(location.search).get("scenario");
 const sso = scenario === "sso";
 const layout = scenario === "layout";
+const duplicate = scenario === "duplicate-cli";
 const cli = { path: "/usr/local/bin/aws", version: "2.42.4", v2: true, mfaSupported: true };
+const olderCli = { ...cli, path: "/opt/homebrew/bin/aws", version: "2.40.4" };
 const device = "arn:aws:iam::123456789012:mfa/example";
 const dashboard: Dashboard = {
-  cli: sso || layout ? cli : null,
+  cli: sso || layout || duplicate ? cli : null,
+  cliInstallations: duplicate ? [
+    { ...cli, source: "awsInstaller", canRemove: false },
+    { ...olderCli, source: "homebrew", canRemove: true },
+  ] : [],
+  terminalPath: { supported: duplicate, enabled: false, error: null },
   preferredPath: null,
   files: { config: "~/.aws/config", credentials: "~/.aws/credentials" },
   sessions: [],
@@ -65,8 +72,24 @@ const api: DesktopApi = {
   profiles: async () => profiles,
   latestCliVersion: async () => cli.version,
   installCli: async () => { cliInstalled = true; },
-  cli: async (command) => {
+  cli: async (command, path) => {
     if (command === "rescan_cli" && cliInstalled) dashboard.cli = cli;
+    if (command === "enable_terminal_path") dashboard.terminalPath.enabled = true;
+    if (command === "disable_terminal_path") dashboard.terminalPath.enabled = false;
+    if (duplicate && command === "choose_cli" && path === olderCli.path) {
+      dashboard.cli = olderCli;
+      dashboard.preferredPath = path;
+      return true;
+    }
+    if (duplicate && command === "reset_cli") {
+      dashboard.cli = cli;
+      dashboard.preferredPath = null;
+    }
+    if (duplicate && command === "remove_cli" && path === olderCli.path) {
+      if (!window.confirm("Remove the example Homebrew installation?")) return false;
+      dashboard.cliInstallations = dashboard.cliInstallations.filter((item) => item.path !== path);
+      return true;
+    }
   },
   registerIam: async ({ name, region }) => {
     profiles.push(profile(name, "iamSource", region || null));

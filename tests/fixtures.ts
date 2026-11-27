@@ -22,7 +22,8 @@ export function mockSession(id: string, label: string, login: Login): Session {
 
 export function backend(state: Partial<Dashboard> = {}, profiles: Profile[] = []) {
   const dashboard: Dashboard = {
-    cli, preferredPath: null, files: { config: "/test/config", credentials: "/test/credentials" },
+    cli, cliInstallations: [], preferredPath: null, files: { config: "/test/config", credentials: "/test/credentials" },
+    terminalPath: { supported: false, enabled: false, error: null },
     sessions: [], preferences: { notify: false, notifyMinutes: 10, language: "ko" },
     scanning: false, wizard: false, profilesError: null, settingsError: null, ...state,
   };

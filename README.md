@@ -20,13 +20,17 @@ Cloud Session Tray lets you check and renew AWS CLI sessions from the macOS menu
 
 The app follows your system language and supports English and Korean. Choose a display language in **Settings**.
 
-1. Open **AWS CLI** to check the executable and version. **Open official update** appears when a newer version is available. The screen checks automatically at most once every 24 hours. Use **Check for updates** to check immediately, **Scan again** after installing, or **Select executable** for a custom install location.
+1. Open **AWS CLI** to check the executable and version. **Open official update** appears when a newer version is available. The screen checks automatically at most once every 24 hours. Use **Check for updates** to check immediately, **Scan again** after installing, or **Select executable** for a custom install location. Automatic discovery picks the newest installation among those with the same CLI and MFA support.
 2. For a first IAM setup, use **Sessions → Register IAM access keys**. Pick an optional region from the list. The app saves JSON as the default CLI output format for the new source profile and opens MFA setup with that profile selected. Use **Connect profile** or **Add profile** for existing profiles.
    - **IAM MFA** starts with your preferred local source profile and suggests a separate destination for temporary credentials. Use **Find MFA devices** or enter the device ARN or serial. Device lookup requires `iam:ListMFADevices`.
    - **IAM Identity Center** uses a local SSO profile and checks its existing login. To create one, open **Open SSO wizard** with your organization's start or issuer URL and SSO region.
 3. Click **Renew** and enter an MFA code or finish the SSO login in your browser. **Check status** shows the account, caller ARN and last check time. Enable expiration notifications in **Settings** for IAM MFA sessions whose expiration is known.
 
 IAM MFA requires AWS CLI v2 with `aws configure mfa-login`. The app detects whether that command is available. [Install AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html) · [IAM MFA login](https://docs.aws.amazon.com/cli/latest/reference/configure/mfa-login.html) · [Identity Center setup](https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-sso.html)
+
+When the app detects more than one AWS CLI installation, the **AWS CLI** screen shows their versions, paths, and sources. You can switch installations or remove an inactive copy that the app can identify and manage.
+
+On macOS with zsh or Bash, choose **Apply to terminal PATH** to use the app’s selected AWS CLI in new terminal tabs. The link follows later CLI selections. Choose **Unlink terminal PATH** to restore shell startup behavior.
 
 ## Use existing AWS profiles
 

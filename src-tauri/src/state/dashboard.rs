@@ -1,5 +1,6 @@
 use super::core::AppState;
 use crate::{
+    cli::Installation,
     model::{Cli, Expiry, Preferences, SessionView, Status},
     profiles::Files,
 };
@@ -11,6 +12,8 @@ use std::path::PathBuf;
 #[serde(rename_all = "camelCase")]
 pub struct Dashboard {
     cli: Option<Cli>,
+    cli_installations: Vec<Installation>,
+    terminal_path: TerminalPath,
     preferred_path: Option<PathBuf>,
     files: Files,
     pub(super) sessions: Vec<SessionView>,
@@ -19,6 +22,13 @@ pub struct Dashboard {
     wizard: bool,
     profiles_error: Option<String>,
     settings_error: Option<String>,
+}
+
+#[derive(Serialize)]
+struct TerminalPath {
+    supported: bool,
+    enabled: bool,
+    error: Option<String>,
 }
 
 impl AppState {
@@ -92,6 +102,23 @@ impl AppState {
             .collect();
         Dashboard {
             cli: data.cli.clone(),
+            terminal_path: TerminalPath {
+                supported: self.terminal_path_supported(),
+                enabled: !data.settings.terminal_path_files.is_empty(),
+                error: data.terminal_path_error.clone(),
+            },
+            cli_installations: data
+                .installations
+                .iter()
+                .cloned()
+                .map(|mut installation| {
+                    installation.can_remove = data
+                        .installations
+                        .first()
+                        .is_some_and(|active| installation.can_remove_while_using(active));
+                    installation
+                })
+                .collect(),
             preferred_path: data.settings.cli_path.clone(),
             files: self.files.clone(),
             sessions,

@@ -123,3 +123,38 @@ test("connects an IAM Identity Center profile", async ({ page }) => {
   await editor.getByRole("button", { name: labels["common.save"] }).click();
   await expect(page.getByRole("region", { name: labels["sessions.selected"] }).getByText(labels["sessions.available"])).toBeVisible();
 });
+
+test("shows duplicate installations and removes only the confirmed inactive one", async ({ page }) => {
+  const labels = copy();
+  await page.goto(`${fixture}?scenario=duplicate-cli`);
+  await page.getByRole("button", { name: "AWS CLI", exact: true }).click();
+  const installations = page.getByRole("region", { name: labels["cli.installations"].replace("{count}", "2") });
+  const official = installations.getByRole("listitem").filter({ hasText: "/usr/local/bin/aws" });
+  const brew = installations.getByRole("listitem").filter({ hasText: "/opt/homebrew/bin/aws" });
+  await expect(official.getByText(labels["cli.installationInUse"])).toBeVisible();
+  await expect(brew.getByText(labels["cli.sourceHomebrew"], { exact: false })).toBeVisible();
+  const remove = brew.getByRole("button", { name: labels["common.remove"], exact: true });
+  await expect(remove).toBeInViewport({ ratio: 1 });
+  await capture(page, "cli-installations", remove);
+
+  const terminal = page.getByRole("region", { name: labels["cli.terminalPath"] });
+  await terminal.getByRole("button", { name: labels["cli.terminalPathApply"] }).click();
+  await expect(terminal.getByText(labels["cli.terminalPathEnabled"])).toBeVisible();
+  await brew.getByRole("button", { name: labels["cli.useInstallation"] }).click();
+  await expect(brew.getByText(labels["cli.installationInUse"])).toBeVisible();
+  await expect(terminal.getByRole("button", { name: labels["cli.terminalPathRemove"] })).toBeEnabled();
+  await expect(remove).toHaveCount(0);
+  await expect(official.getByRole("button", { name: labels["cli.uninstallDocs"] })).toBeVisible();
+  await page.getByRole("button", { name: labels["cli.autoDiscover"] }).click();
+  await expect(official.getByText(labels["cli.installationInUse"])).toBeVisible();
+
+  page.once("dialog", (dialog) => dialog.dismiss());
+  await remove.click();
+  await expect(remove).toBeEnabled();
+  page.once("dialog", (dialog) => dialog.accept());
+  await remove.click();
+  await expect(installations).toHaveCount(0);
+  await expect(page.getByText(labels["app.cliRemoved"])).toBeVisible();
+  await terminal.getByRole("button", { name: labels["cli.terminalPathRemove"] }).click();
+  await expect(terminal.getByRole("button", { name: labels["cli.terminalPathApply"] })).toBeEnabled();
+});

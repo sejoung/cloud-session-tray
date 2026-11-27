@@ -153,7 +153,7 @@ class Application {
     const value = active?.dataset[key];
     if (!value) return;
     const buttons = this.ui.content.querySelectorAll<HTMLElement>(`[data-${key}]`);
-    Array.from(buttons).find((button) => button.dataset[key] === value)?.focus({ preventScroll: true });
+    Array.from(buttons).find((button) => button.dataset[key] === value && button.dataset.path === active?.dataset.path)?.focus({ preventScroll: true });
   }
 
   private navigate(next: Page): void {
@@ -274,14 +274,15 @@ class Application {
     this.render();
   }
 
-  private async checkCli(command: Parameters<DesktopApi["cli"]>[0]): Promise<void> {
+  private async checkCli(command: Parameters<DesktopApi["cli"]>[0], path?: string): Promise<void> {
     if (this.cliBusy) return;
     const previousVersion = this.dashboard?.cli?.version;
     this.cliBusy = true;
     this.render();
     try {
-      const changed = await this.api.cli(command);
+      const changed = path ? await this.api.cli(command, path) : await this.api.cli(command);
       await this.refresh();
+      if (command === "remove_cli" && changed) this.showMessage(t("app.cliRemoved"));
       if (this.dashboard?.cli?.v2 && changed !== false) {
         if (this.installerState === "opened" && this.dashboard.cli.version !== previousVersion) this.installerState = "idle";
         await this.loadProfiles();
@@ -322,7 +323,7 @@ class Application {
     this.showMessage(t("app.preferencesSaved"));
   }
 
-  private async perform(action: string): Promise<void> {
+  private async perform(action: string, path?: string): Promise<void> {
     const session = this.selectedSession();
     switch (action) {
       case "add": await this.openEditor(); return;
@@ -338,7 +339,9 @@ class Application {
       case "open-logs": await this.api.openLogFolder(); return;
       case "check-cli-release": await this.checkCliRelease(true); return;
       case "rescan": await this.checkCli("rescan_cli"); return;
-      case "choose": await this.checkCli("choose_cli"); return;
+      case "choose": await this.checkCli("choose_cli", path); return;
+      case "remove-cli": await this.checkCli("remove_cli", path); return;
+      case "terminal-path": await this.checkCli(this.dashboard?.terminalPath.enabled ? "disable_terminal_path" : "enable_terminal_path"); return;
       case "auto-cli": await this.checkCli("reset_cli"); return;
       case "profiles": await this.loadProfiles(); break;
       case "register-iam": this.openIamRegistration(false); return;
@@ -353,7 +356,7 @@ class Application {
   private handleClick = (event: MouseEvent): void => {
     const button = (event.target as HTMLElement | null)?.closest<HTMLButtonElement>("button");
     if (!button) return;
-    const { page, session, close, docs, action, workflow, profile } = button.dataset;
+    const { page, session, close, docs, action, workflow, profile, path } = button.dataset;
     if (page) this.navigate(page as Page);
     if (session) {
       this.selectedId = session;
@@ -361,7 +364,7 @@ class Application {
     }
     if (close) this.root.querySelector<HTMLDialogElement>(`#${close}`)?.close();
     if (docs) void this.api.openDocs(docs).catch(this.reportError);
-    if (action) void this.perform(action).catch(this.reportError);
+    if (action) void this.perform(action, path).catch(this.reportError);
     if (workflow) void this.performWorkflow(workflow, profile).catch(this.reportError);
   };
 

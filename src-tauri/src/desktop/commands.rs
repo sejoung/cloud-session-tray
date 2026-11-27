@@ -9,7 +9,7 @@ use crate::{
     profiles::ProfileView,
     state::{Action, AppState, Dashboard},
 };
-use std::sync::Arc;
+use std::{path::PathBuf, sync::Arc};
 use tauri::{AppHandle, State};
 use tauri_plugin_opener::OpenerExt;
 use zeroize::Zeroizing;
@@ -31,7 +31,15 @@ pub(super) async fn rescan_cli(state: State<'_, Arc<AppState>>) -> Result<(), St
 pub(super) async fn choose_cli(
     app: AppHandle,
     state: State<'_, Arc<AppState>>,
+    path: Option<PathBuf>,
 ) -> Result<bool, String> {
+    if let Some(path) = path {
+        operation(
+            "AWS CLI executable selection",
+            state.choose_detected_cli(path).await,
+        )?;
+        return Ok(true);
+    }
     let dialog = file_dialog(&app, text(state.language(), "native.chooseCli"));
     #[cfg(windows)]
     let dialog = dialog.add_filter("AWS CLI", &["exe"]);
@@ -170,6 +178,7 @@ pub(super) fn cancel_session(state: State<'_, Arc<AppState>>, id: String) {
 #[serde(rename_all = "camelCase")]
 pub(super) enum Documentation {
     Installation,
+    Uninstallation,
     Sso,
     Iam,
 }
@@ -178,6 +187,7 @@ pub(super) enum Documentation {
 pub(super) fn open_docs(app: AppHandle, topic: Documentation) -> Result<(), String> {
     let page = match topic {
         Documentation::Installation => "getting-started-install.html",
+        Documentation::Uninstallation => "uninstall.html",
         Documentation::Sso => "cli-configure-sso.html",
         Documentation::Iam => "cli-configure-files.html",
     };
