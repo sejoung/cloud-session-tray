@@ -4,10 +4,10 @@ import { header, notice, text } from "./html";
 
 export function settingsPage(state: Dashboard, preferencesDraft: Preferences | null): string {
   const preferences = preferencesDraft ?? state.preferences;
-  return header(t("common.settings"), t("settings.description"))
+  const save = `<button class="button primary" type="submit">${text("settings.save")}</button>`;
+  return `<form id="preferences">` + header(t("common.settings"), t("settings.description"), save)
     + (state.settingsError ? notice(localizeMessage(state.settingsError), true) : "")
-    + `<form id="preferences" class="settings-form">
-      <section class="card section-card">
+    + `<section class="card section-card">
         <label class="field short-field">${text("settings.language")}
           <select name="language">
             <option value="">${text("settings.system")}</option>
@@ -17,13 +17,12 @@ export function settingsPage(state: Dashboard, preferencesDraft: Preferences | n
         </label>
       </section>
       <section class="card section-card">
-      <h2>${text("settings.notifications")}</h2>
-      <p class="muted">${text("settings.notificationHelp")}</p>
+        <h2>${text("settings.notifications")}</h2>
+        <p class="muted">${text("settings.notificationHelp")}</p>
         <label class="check-label"><input type="checkbox" name="notify" ${preferences.notify ? "checked" : ""} /> ${text("settings.notifyBefore")}</label>
         <label class="field short-field">${text("settings.notifyMinutes")}
           <input type="number" min="1" max="1440" step="1" required name="notifyMinutes" value="${preferences.notifyMinutes}" />
         </label>
-        <div class="actions"><button class="button primary" type="submit">${text("common.save")}</button></div>
       </section>
     </form>
     <section class="card section-card">

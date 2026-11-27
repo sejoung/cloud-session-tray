@@ -219,7 +219,6 @@ h3 { font-size: 15px; }
 .wizard-section { padding-top: 15px; margin-top: 16px; border-top: 1px solid var(--line); }
 .wizard-section p { margin-top: 5px; color: var(--muted); }
 
-.settings-form { margin-top: 17px; }
 .field, .check-label { font-size: 13px; font-weight: 620; }
 .field { display: grid; gap: 5px; margin-bottom: 11px; }
 .short-field { max-width: 185px; }
