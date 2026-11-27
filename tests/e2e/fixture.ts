@@ -1,6 +1,6 @@
 import { mountApplication } from "../../src/app";
 import type { DesktopApi } from "../../src/desktop-api";
-import type { Dashboard, Profile } from "../../src/domain";
+import { profileName, type Dashboard, type Profile, type SharedProfile } from "../../src/domain";
 import { element } from "../../src/ui/html";
 import "../../src/style.css";
 
@@ -30,6 +30,7 @@ function profile(name: string, kind: "sso" | "iamSource", region: string | null)
 const ssoProfile = profile("team-dev", "sso", "ap-northeast-2");
 const profiles = sso ? [ssoProfile] : [];
 let cliInstalled = sso;
+let shareFile: string | undefined;
 const unavailable = async () => { throw new Error("Unexpected desktop action in browser test"); };
 
 function markAvailable(id: string): void {
@@ -56,11 +57,12 @@ const api: DesktopApi = {
   mfaDevices: async () => [device],
   configureSso: async () => profiles,
   saveSession: async ({ login, label, task }) => {
+    const id = profileName(login);
     dashboard.sessions.push({
-      id: "example", login, label, task, status: "unknown", phase: null, canCancel: false,
+      id, login, label, task, status: "unknown", phase: null, canCancel: false,
       identity: null, checkedAt: null, expiresAt: null, checkMessage: null, activity: null,
     });
-    return "example";
+    return id;
   },
   renewMfa: async (id, otp) => {
     if (otp !== "123456") throw new Error("Incorrect example OTP");
@@ -77,9 +79,21 @@ const api: DesktopApi = {
   openDocs: unavailable,
   toolConnection: unavailable,
   testConnection: unavailable,
-  prepareShare: unavailable,
-  saveShare: unavailable,
-  openShare: unavailable,
+  prepareShare: async (name, task) => {
+    const session = dashboard.sessions.find(({ login }) => login.kind === "iamMfa" && login.target === name);
+    if (!session || session.login.kind !== "iamMfa") throw new Error(`No example IAM session for ${name}`);
+    const { source, duration, region } = session.login;
+    const sourceRegion = profiles.find((item) => item.name === source)?.region;
+    return {
+      version: 1, profile: name, label: session.label, task, region: region ?? sourceRegion ?? null,
+      authentication: { kind: "iamMfa", sourceHint: source, duration },
+    };
+  },
+  saveShare: async (shared) => {
+    shareFile = JSON.stringify(shared);
+    return true;
+  },
+  openShare: async () => shareFile ? JSON.parse(shareFile) as SharedProfile : null,
   importSso: unavailable,
 };
 

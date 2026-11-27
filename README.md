@@ -36,9 +36,11 @@ IAM MFA requires AWS CLI v2 with `aws configure mfa-login`. The app detects whet
 
 ## Share a profile setup
 
-Open **Share** to copy instructions or export a setup file with the destination profile and a task note. An IAM setup can include a source profile hint, region, and session duration. An Identity Center setup can include the sign-in URL, SSO region, account, and role. Shared files omit AWS keys, session tokens, and MFA codes.
+Select a profile in **Sessions** and click **Export share file** to copy instructions or save a JSON file with the destination profile and task note. An IAM setup can include a source profile hint, region, and session duration. An Identity Center setup can include the sign-in URL, SSO region, account, and role. Shared files omit AWS keys, session tokens, and MFA codes.
 
 Teammates can preview a setup with **Import share file**. Each teammate selects their own local IAM source and MFA device or signs in through Identity Center.
+
+[Export a share file](https://sejoung.github.io/cloud-session-tray/#share-export) · [Import a share file](https://sejoung.github.io/cloud-session-tray/#share-import)
 
 ## Diagnostics
 
@@ -62,7 +64,7 @@ npm run tauri build
 
 The lint suite limits source, tests, and config files to 400 lines each. It runs ESLint, dependency-cruiser, jscpd, rustfmt, and Clippy. Dependency-cruiser checks frontend dependencies, and the Rust test suite checks Rust module boundaries and cycles. Tests use temporary files and test backends in place of live AWS credentials.
 
-Install Chromium for Playwright to run the browser E2E tests and refresh the manual screenshots. The capture command writes six screenshots in each language to `docs/assets` using example data. The app and native UI share the translation keys in `locales/en.json` and `locales/ko.json`.
+Install Chromium for Playwright to run the browser E2E tests and refresh the manual screenshots. The capture command writes screenshots in both languages to `docs/assets` using example data. The app and native UI share the translation keys in `locales/en.json` and `locales/ko.json`.
 
 ```sh
 npx playwright install chromium

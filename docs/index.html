@@ -60,13 +60,15 @@
     </section>
 
     <section class="wrap manual" id="manual">
-      <h2 class="section-title">Set up your first AWS session</h2>
+      <h2 class="section-title">AWS session manual</h2>
       <p>The app follows your system language. Choose a different display language in Settings.</p>
       <nav class="manual-nav" aria-label="Manual sections">
         <a href="#aws-cli">AWS CLI</a>
         <a href="#iam">IAM MFA</a>
         <a href="#identity-center">Identity Center</a>
         <a href="#renew">Renew a session</a>
+        <a href="#share-export">Export share file</a>
+        <a href="#share-import">Import share file</a>
       </nav>
 
       <article class="step" id="aws-cli">
@@ -133,6 +135,37 @@
         <figure>
           <a class="screenshot" href="assets/en/renew.png"><img src="assets/en/renew.png" width="1100" height="760" loading="lazy" alt="IAM MFA renewal dialog asking for a six-digit code"></a>
           <figcaption>Enter the current code from your MFA device.</figcaption>
+        </figure>
+      </article>
+
+      <article class="step" id="share-export">
+        <div>
+          <h3>Export a profile share file</h3>
+          <ol>
+            <li>Select a saved profile in <strong>Sessions</strong> and click <strong>Export share file</strong> at the top. To share a local profile directly, use the button on its row under <strong>AWS CLI</strong> → <strong>Local profiles</strong>.</li>
+            <li>Review the settings and edit the profile name or task note if needed.</li>
+            <li>Click <strong>Export share file</strong> in the dialog, choose where to save the JSON file, and send it to your teammate. Use <strong>Copy instructions</strong> if you also want to send the setup steps as text.</li>
+          </ol>
+          <p>The file contains profile settings and the task note. AWS access keys, session tokens, and MFA codes stay on your device.</p>
+        </div>
+        <figure>
+          <a class="screenshot" href="assets/en/share-export.png"><img src="assets/en/share-export.png" width="1100" height="760" loading="lazy" alt="Share preview showing the profile name, task note, and Export share file button"></a>
+          <figcaption>Review what your teammate will receive before saving the file.</figcaption>
+        </figure>
+      </article>
+
+      <article class="step" id="share-import">
+        <div>
+          <h3>Import a profile share file</h3>
+          <ol>
+            <li>Click <strong>Import share file</strong> in <strong>Sessions</strong> or <strong>AWS CLI</strong> → <strong>Local profiles</strong>, then select the JSON file exported from Cloud Session Tray.</li>
+            <li>Review the profile name, settings, and any task note in the preview. Change the profile name if needed.</li>
+            <li>For IAM MFA, click <strong>Open IAM setup</strong>, select your own local IAM source profile and MFA device, then click <strong>Save</strong>. For Identity Center, click <strong>Import profile</strong>, then select the session and click <strong>Renew</strong> to sign in.</li>
+          </ol>
+        </div>
+        <figure>
+          <a class="screenshot" href="assets/en/share-import.png"><img src="assets/en/share-import.png" width="1100" height="760" loading="lazy" alt="Import preview showing the settings from the share file and the Open IAM setup button"></a>
+          <figcaption>Review the imported settings before connecting your own AWS credentials.</figcaption>
         </figure>
       </article>
     </section>

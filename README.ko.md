@@ -39,9 +39,11 @@ IAM MFA는 `aws configure mfa-login`을 지원하는 CLI v2가 필요합니다. 
 
 ## 팀 공유
 
-**공유**에서 갱신 대상과 작업 메모를 확인한 뒤 **안내 복사** 또는 **공유 파일 내보내기**를 선택합니다. IAM 공유에는 원본 프로필 힌트, 갱신 대상, 리전과 기간을 담을 수 있습니다. Identity Center 공유에는 로그인 URL, SSO 리전, 계정과 역할을 담습니다. 자격 증명과 OTP는 공유 파일에 포함되지 않습니다.
+**세션**에서 프로필을 선택하고 **공유 파일 내보내기**를 누릅니다. 갱신 대상과 작업 메모를 확인한 뒤 안내를 복사하거나 JSON 파일을 저장합니다. IAM 공유에는 원본 프로필 힌트, 갱신 대상, 리전과 기간을 담을 수 있습니다. Identity Center 공유에는 로그인 URL, SSO 리전, 계정과 역할을 담습니다. 자격 증명과 OTP는 공유 파일에 포함되지 않습니다.
 
 팀원은 **공유 파일 가져오기**에서 설정을 먼저 확인합니다. IAM의 경우 본인의 장기 키가 들어 있는 로컬 원본과 MFA 장치를 선택합니다. Identity Center는 가져온 프로필로 각자 로그인합니다.
+
+[공유 파일 내보내기 매뉴얼](https://sejoung.github.io/cloud-session-tray/ko/#share-export) · [공유 파일 가져오기 매뉴얼](https://sejoung.github.io/cloud-session-tray/ko/#share-import)
 
 ## 진단
 
@@ -63,7 +65,7 @@ npm test
 npm run tauri build
 ```
 
-Playwright용 Chromium을 설치하면 브라우저 E2E를 실행하고 매뉴얼 화면을 다시 캡처할 수 있습니다. 캡처 명령은 예시 데이터로 언어별 화면 6장을 만들어 `docs/assets`에 저장합니다. 앱 화면과 시스템 트레이는 `locales/en.json` 및 `locales/ko.json`의 번역 키를 공유합니다.
+Playwright용 Chromium을 설치하면 브라우저 E2E를 실행하고 매뉴얼 화면을 다시 캡처할 수 있습니다. 캡처 명령은 예시 데이터로 한글과 영문 화면을 만들어 `docs/assets`에 저장합니다. 앱 화면과 시스템 트레이는 `locales/en.json` 및 `locales/ko.json`의 번역 키를 공유합니다.
 
 ```sh
 npx playwright install chromium

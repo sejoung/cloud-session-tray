@@ -71,7 +71,6 @@ function sessionActions(session: Session, hasCli: boolean, requiresMfa: boolean)
     <button class="button primary" data-action="renew" ${canStart && !requiresMfa ? "" : "disabled"}>${text("common.renew")}</button>
     <button class="button" data-action="check" ${canStart ? "" : "disabled"}>${text("common.checkStatus")}</button>
     <button class="button subtle" data-workflow="connect" ${hasCli ? "" : "disabled"}>${text("common.connectTools")}</button>
-    <button class="button subtle" data-workflow="share">${text("common.share")}</button>
     ${session.phase ? `<button class="button subtle" data-action="cancel" ${!session.canCancel ? "disabled" : ""}>
       ${session.canCancel ? t("common.cancel") : t("common.canceling")}</button>`
       : `<button class="button subtle" data-action="edit" ${hasCli ? "" : "disabled"}>${text("common.edit")}</button>`}
@@ -105,6 +104,9 @@ export function sessionsPage(state: Dashboard, profiles: Profile[] | null, sessi
   const body = session
     ? `<div class="session-grid">${sessionList(state.sessions, session)}${sessionDetail(session, state.cli)}</div>`
     : onboarding(hasCli, profiles);
-  const actions = `<div class="actions">${add}<button class="button" data-workflow="import">${text("common.importShare")}</button></div>`;
+  const actions = `<div class="actions">${add}
+    <button class="button" data-workflow="export" ${session ? "" : `disabled title="${text("share.selectProfile")}"`}>${text("share.export")}</button>
+    <button class="button" data-workflow="import">${text("common.importShare")}</button>
+  </div>`;
   return header(t("sessions.title"), t("sessions.description"), actions) + banners + body;
 }

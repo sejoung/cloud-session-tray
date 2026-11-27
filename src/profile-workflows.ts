@@ -26,7 +26,7 @@ export class ProfileWorkflows {
     switch (action) {
       case "import": await this.importProfile(); return;
       case "adopt": await this.adoptProfile(context); return;
-      case "share": {
+      case "export": {
         if (!context.profile) return;
         const shared = await this.api.prepareShare(context.profile, context.task ?? "");
         showShareDialog(this.dialog, shared, (value) => this.api.saveShare(value));

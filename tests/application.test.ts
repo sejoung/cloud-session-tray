@@ -320,11 +320,15 @@ describe("External tool profile workflows", () => {
   });
 
   it("includes the exact destination and task in the export guide", async () => {
-    const { api } = backend({ sessions: [mockSession("work-id", "Team dev", {
-      kind: "iamMfa", source: "default", target: "tech", device: "SERIAL", duration: 43200,
-    })] });
+    const { api } = backend({ sessions: [
+      mockSession("other-id", "Other profile", { kind: "sso", profile: "other" }),
+      mockSession("work-id", "Team dev", {
+        kind: "iamMfa", source: "default", target: "tech", device: "SERIAL", duration: 43200,
+      }),
+    ] });
     mount(api);
-    await click('[data-workflow="share"]');
+    await click('[data-session="work-id"]');
+    await click('.page-header [data-workflow="export"]');
     await vi.waitFor(() => expect(document.querySelector("#workflow[open]")).not.toBeNull());
     const task = element<HTMLTextAreaElement>(document, '#workflow [name="task"]');
     task.value = "Check the deployment";
@@ -337,6 +341,14 @@ describe("External tool profile workflows", () => {
     await vi.waitFor(() => expect(api.saveShare).toHaveBeenCalledWith(expect.objectContaining({
       profile: "tech", task: "Check the deployment",
     })));
+  });
+
+  it("exports the local profile whose row was clicked", async () => {
+    const { api } = backend({}, [profile("local-sso", "sso")]);
+    mount(api);
+    await click('nav [data-page="cli"]');
+    await click('[data-profile="local-sso"][data-workflow="export"]');
+    expect(api.prepareShare).toHaveBeenCalledExactlyOnceWith("local-sso", "");
   });
 
   it("keeps the shared destination and task when a recipient uses their own source", async () => {

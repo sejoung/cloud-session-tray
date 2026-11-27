@@ -99,7 +99,7 @@ function profileRow(profile: Profile): string {
     <div class="profile-actions">
       ${attachable ? `<button class="button subtle" data-workflow="adopt" ${attributes}>${text("cli.linkSession")}</button>` : ""}
       ${usable ? `<button class="button subtle" data-workflow="connect" ${attributes}>${text("common.connectTools")}</button>
-        <button class="button subtle" data-workflow="share" ${attributes}>${text("common.share")}</button>` : ""}
+        <button class="button" data-workflow="export" ${attributes}>${text("share.export")}</button>` : ""}
     </div>
   </li>`;
 }

@@ -64,8 +64,8 @@ export function showShareDialog(
     <p class="muted" role="status" data-copy-status></p>
     <p class="form-error" role="alert" hidden></p>
     <div class="actions dialog-actions">
-      <button class="button primary" type="button" data-copy>${text("share.copy")}</button>
-      <button class="button" type="submit">${text("share.export")}</button>
+      <button class="button primary" type="submit">${text("share.export")}</button>
+      <button class="button" type="button" data-copy>${text("share.copy")}</button>
       <button class="button subtle" type="button" data-close="workflow">${text("common.close")}</button>
     </div>
   </form>`;

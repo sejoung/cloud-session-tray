@@ -14,6 +14,9 @@ test("links both languages to the matching latest installer on desktop and mobil
   await expect(page.locator("html")).toHaveAttribute("lang", "en");
   await expect(page.getByRole("link", { name: /Download for macOS/ })).toHaveAttribute("href", assets[0].browser_download_url);
   await expect(page.getByRole("link", { name: /Download for Windows/ })).toHaveAttribute("href", assets[1].browser_download_url);
+  await page.getByRole("link", { name: "Export share file", exact: true }).click();
+  await expect(page).toHaveURL(/\/docs\/#share-export$/);
+  await expect(page.getByRole("heading", { name: "Export a profile share file" })).toBeInViewport();
   await page.setViewportSize({ width: 390, height: 844 });
   await page.getByRole("link", { name: "한국어" }).click();
   await expect(page.locator("html")).toHaveAttribute("lang", "ko");
@@ -24,6 +27,9 @@ test("links both languages to the matching latest installer on desktop and mobil
   await page.getByRole("link", { name: "IAM MFA", exact: true }).click();
   await expect(page).toHaveURL(/\/ko\/#iam$/);
   await expect(page.getByRole("heading", { name: "IAM 사용자와 MFA 연결" })).toBeInViewport();
+  await page.getByRole("link", { name: "공유 파일 가져오기", exact: true }).click();
+  await expect(page).toHaveURL(/\/ko\/#share-import$/);
+  await expect(page.getByRole("heading", { name: "프로필 공유 파일 가져오기" })).toBeInViewport();
 });
 
 test.describe("Korean browser", () => {

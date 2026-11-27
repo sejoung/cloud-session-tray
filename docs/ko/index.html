@@ -59,13 +59,15 @@
     </section>
 
     <section class="wrap manual" id="manual">
-      <h2 class="section-title">첫 AWS 세션 설정하기</h2>
+      <h2 class="section-title">AWS 세션 사용 매뉴얼</h2>
       <p>AWS CLI를 연결한 다음, 계정에 맞는 인증 방식으로 세션을 추가하세요.</p>
       <nav class="manual-nav" aria-label="매뉴얼 목차">
         <a href="#aws-cli">AWS CLI</a>
         <a href="#iam">IAM MFA</a>
         <a href="#identity-center">Identity Center</a>
         <a href="#renew">세션 갱신</a>
+        <a href="#share-export">공유 파일 내보내기</a>
+        <a href="#share-import">공유 파일 가져오기</a>
       </nav>
 
       <article class="step" id="aws-cli">
@@ -132,6 +134,37 @@
         <figure>
           <a class="screenshot" href="../assets/renew.png"><img src="../assets/renew.png" width="1100" height="760" loading="lazy" alt="MFA 인증 코드 6자리 입력을 요청하는 IAM MFA 갱신 창"></a>
           <figcaption>MFA 장치에 표시된 현재 코드를 입력합니다.</figcaption>
+        </figure>
+      </article>
+
+      <article class="step" id="share-export">
+        <div>
+          <h3>프로필 공유 파일 내보내기</h3>
+          <ol>
+            <li><strong>세션</strong>에서 저장된 프로필을 선택하고 상단의 <strong>공유 파일 내보내기</strong>를 누릅니다. 로컬 프로필을 바로 공유하려면 <strong>AWS CLI</strong> → <strong>로컬 프로필</strong>에서 해당 프로필의 버튼을 누릅니다.</li>
+            <li>공유할 설정을 확인하고, 필요한 경우 프로필 이름이나 작업 메모를 수정합니다.</li>
+            <li>창에서 <strong>공유 파일 내보내기</strong>를 눌러 JSON 파일을 저장한 뒤 팀원에게 전달합니다. 설정 절차를 텍스트로도 전달하려면 <strong>안내 복사</strong>를 누릅니다.</li>
+          </ol>
+          <p>공유 파일에는 프로필 설정과 작업 메모가 담깁니다. AWS 액세스 키, 세션 토큰, MFA 코드는 기기에 남습니다.</p>
+        </div>
+        <figure>
+          <a class="screenshot" href="../assets/share-export.png"><img src="../assets/share-export.png" width="1100" height="760" loading="lazy" alt="프로필 이름, 작업 메모와 공유 파일 내보내기 버튼이 표시된 미리보기 창"></a>
+          <figcaption>파일을 저장하기 전에 팀원에게 전달할 내용을 확인합니다.</figcaption>
+        </figure>
+      </article>
+
+      <article class="step" id="share-import">
+        <div>
+          <h3>프로필 공유 파일 가져오기</h3>
+          <ol>
+            <li><strong>세션</strong> 또는 <strong>AWS CLI</strong> → <strong>로컬 프로필</strong>에서 <strong>공유 파일 가져오기</strong>를 누르고, Cloud Session Tray에서 내보낸 JSON 파일을 선택합니다.</li>
+            <li>미리보기에서 프로필 이름, 설정, 작업 메모를 확인합니다. 필요한 경우 프로필 이름을 바꿉니다.</li>
+            <li>IAM MFA는 <strong>IAM 설정 열기</strong>를 눌러 본인의 로컬 IAM 원본 프로필과 MFA 장치를 선택하고 <strong>저장</strong>합니다. Identity Center는 <strong>프로필 가져오기</strong>를 누른 뒤 세션을 선택하고 <strong>갱신</strong>을 눌러 로그인합니다.</li>
+          </ol>
+        </div>
+        <figure>
+          <a class="screenshot" href="../assets/share-import.png"><img src="../assets/share-import.png" width="1100" height="760" loading="lazy" alt="공유 파일의 설정과 IAM 설정 열기 버튼이 표시된 가져오기 미리보기 창"></a>
+          <figcaption>본인의 AWS 자격 증명을 연결하기 전에 가져올 설정을 확인합니다.</figcaption>
         </figure>
       </article>
     </section>
