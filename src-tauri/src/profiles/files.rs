@@ -6,9 +6,13 @@ use super::{
 
 impl Files {
     pub fn read(&self) -> Result<Profiles, String> {
-        let (config_file, config_digest) = ini::read_file(&self.config, "AWS 설정 파일")?;
-        let (credentials, credentials_digest) =
-            ini::read_file(&self.credentials, "AWS 자격 증명 파일")?;
+        let (config_file, config_digest) =
+            ini::read_file(&self.config, "errors.configRead", "errors.configIni")?;
+        let (credentials, credentials_digest) = ini::read_file(
+            &self.credentials,
+            "errors.credentialsRead",
+            "errors.credentialsIni",
+        )?;
         let mut config = Ini::new();
         let mut sso_sessions = Ini::new();
         for (name, section) in config_file {
@@ -17,8 +21,7 @@ impl Files {
                 continue;
             }
             if name.starts_with("profile") || name.starts_with("sso-session") {
-                let words = shell_words::split(&name)
-                    .map_err(|_| "AWS 설정 파일의 섹션 이름을 확인해 주세요.")?;
+                let words = shell_words::split(&name).map_err(|_| "errors.configSections")?;
                 if let [kind, name] = words.as_slice() {
                     let map = match kind.as_str() {
                         "profile" => &mut config,
@@ -26,9 +29,7 @@ impl Files {
                         _ => continue,
                     };
                     if map.insert(name.clone(), section).is_some() {
-                        return Err(
-                            "AWS 설정 파일에 이름이 겹치는 프로필 또는 SSO 세션이 있습니다.".into(),
-                        );
+                        return Err("errors.duplicateConfigSections".into());
                     }
                 }
             }

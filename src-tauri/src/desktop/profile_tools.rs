@@ -1,5 +1,7 @@
 use super::{
     dialogs::{file_dialog, selected_file},
+    localization::text,
+    logging::operation,
     tray::refresh_tray,
 };
 use crate::{
@@ -23,7 +25,10 @@ pub(super) async fn test_connection(
     state: State<'_, Arc<AppState>>,
     profile: String,
 ) -> Result<ConnectionCheck, String> {
-    state.test_connection(&profile).await
+    operation(
+        "External tool identity check",
+        state.test_connection(&profile).await,
+    )
 }
 
 #[tauri::command]
@@ -42,8 +47,9 @@ pub(super) async fn save_shared_profile(
     shared: SharedProfile,
 ) -> Result<bool, String> {
     shared.validate()?;
-    let dialog = file_dialog(&app, "AWS 공유 프로필 내보내기")
-        .add_filter("CST 공유 프로필", &["json"])
+    let language = state.language();
+    let dialog = file_dialog(&app, text(language, "native.exportShare"))
+        .add_filter(text(language, "native.shareFile"), &["json"])
         .set_file_name("cst-profile.json");
     let Some(path) = selected_file(dialog, true).await? else {
         return Ok(false);
@@ -53,38 +59,43 @@ pub(super) async fn save_shared_profile(
         state.files.credentials.clone(),
         app.path()
             .app_config_dir()
-            .map_err(|_| "앱 설정 경로를 읽을 수 없습니다.")?
+            .map_err(|_| "errors.settingsPath")?
             .join("settings.json"),
     ] {
         if same_path(&path, &reserved) {
-            return Err("공유 파일을 저장할 별도 경로를 선택해 주세요.".into());
+            return Err("errors.sharePathConflict".into());
         }
     }
-    write_share(&path, &shared)?;
+    operation("Profile share export", write_share(&path, &shared))?;
     Ok(true)
 }
 
 #[tauri::command]
-pub(super) async fn open_shared_profile(app: AppHandle) -> Result<Option<SharedProfile>, String> {
-    let dialog =
-        file_dialog(&app, "AWS 공유 프로필 가져오기").add_filter("CST 공유 프로필", &["json"]);
+pub(super) async fn open_shared_profile(
+    app: AppHandle,
+    state: State<'_, Arc<AppState>>,
+) -> Result<Option<SharedProfile>, String> {
+    let language = state.language();
+    let dialog = file_dialog(&app, text(language, "native.importShare"))
+        .add_filter(text(language, "native.shareFile"), &["json"]);
     let Some(path) = selected_file(dialog, false).await? else {
         return Ok(None);
     };
     let file = tokio::fs::File::open(path)
         .await
-        .map_err(|_| "공유 파일을 열 수 없습니다.")?;
+        .map_err(|_| "errors.shareOpen")?;
     let mut bytes = Vec::new();
     file.take((SHARE_FILE_LIMIT + 1) as u64)
         .read_to_end(&mut bytes)
         .await
-        .map_err(|_| "공유 파일을 읽을 수 없습니다.")?;
+        .map_err(|_| "errors.shareRead")?;
     if bytes.len() > SHARE_FILE_LIMIT {
-        return Err("CST 공유 파일은 64KB까지 지원합니다.".into());
+        return Err("errors.shareSize".into());
     }
-    let shared: SharedProfile = serde_json::from_slice(&bytes)
-        .map_err(|_| "CST에서 내보낸 프로필 공유 파일을 선택해 주세요.")?;
+    let shared: SharedProfile =
+        serde_json::from_slice(&bytes).map_err(|_| "errors.invalidShare")?;
     shared.validate()?;
+    log::info!("Profile share file validated");
     Ok(Some(shared))
 }
 
@@ -94,7 +105,10 @@ pub(super) async fn import_shared_sso(
     state: State<'_, Arc<AppState>>,
     shared: SharedProfile,
 ) -> Result<String, String> {
-    let id = state.import_sso(shared).await?;
+    let id = operation(
+        "Shared Identity Center profile import",
+        state.import_sso(shared).await,
+    )?;
     refresh_tray(&app);
     Ok(id)
 }
@@ -109,7 +123,7 @@ fn same_path(first: &Path, second: &Path) -> bool {
 }
 
 fn write_share(path: &Path, shared: &SharedProfile) -> Result<(), String> {
-    let error = "공유 파일을 저장할 수 없습니다. 폴더 권한을 확인해 주세요.";
+    let error = "errors.shareWrite";
     let directory = path.parent().ok_or(error)?;
     let mut staged = tempfile::NamedTempFile::new_in(directory).map_err(|_| error)?;
     serde_json::to_writer_pretty(&mut staged, shared).map_err(|_| error)?;

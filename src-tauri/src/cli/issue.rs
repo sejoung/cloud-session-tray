@@ -19,33 +19,21 @@ pub enum Issue {
 }
 
 impl Issue {
-    pub fn text(self) -> &'static str {
+    pub fn key(self) -> &'static str {
         match self {
-            Self::Cancelled => "작업을 취소했습니다.",
-            Self::Timeout => "응답 시간이 초과되었습니다. 다시 시도해 주세요.",
-            Self::Start => "AWS CLI를 실행할 수 없습니다. 설치 경로를 확인해 주세요.",
-            Self::CredentialsPrompt => {
-                "AWS CLI가 원본 자격 증명을 요청했습니다. IAM 원본 프로필 설정을 확인해 주세요."
-            }
-            Self::MfaRejected => "MFA 인증이 거부되었습니다. 장치 설정과 새 OTP를 확인해 주세요.",
-            Self::Prompt => {
-                "AWS CLI의 OTP 요청을 확인할 수 없습니다. CLI를 업데이트한 뒤 다시 시도해 주세요."
-            }
-            Self::Network => {
-                "AWS에 연결할 수 없습니다. 네트워크, 프록시 또는 인증서를 확인해 주세요."
-            }
-            Self::Auth => "자격 증명이 없거나 만료되었습니다. 세션을 갱신해 주세요.",
-            Self::Denied => "이 작업에 필요한 AWS 권한이 없습니다.",
-            Self::Write => "AWS 자격 증명 파일에 기록할 수 없습니다. 경로와 권한을 확인해 주세요.",
-            Self::Config => {
-                "AWS 프로필이나 설정 파일을 읽을 수 없습니다. 설정과 파일 권한을 확인해 주세요."
-            }
-            Self::Browser => {
-                "기본 브라우저에서 인증을 열 수 없습니다. 브라우저 설정을 확인해 주세요."
-            }
-            Self::Failed => {
-                "AWS CLI 명령이 실패했습니다. 프로필 설정을 확인한 뒤 다시 시도해 주세요."
-            }
+            Self::Cancelled => "messages.cancelled",
+            Self::Timeout => "errors.cliTimeout",
+            Self::Start => "errors.cliStart",
+            Self::CredentialsPrompt => "errors.credentialsPrompt",
+            Self::MfaRejected => "errors.mfaRejected",
+            Self::Prompt => "errors.otpPrompt",
+            Self::Network => "errors.awsNetwork",
+            Self::Auth => "errors.awsAuth",
+            Self::Denied => "errors.awsDenied",
+            Self::Write => "errors.credentialsWrite",
+            Self::Config => "errors.awsConfig",
+            Self::Browser => "errors.authBrowser",
+            Self::Failed => "errors.cliFailed",
         }
     }
 

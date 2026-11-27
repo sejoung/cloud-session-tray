@@ -2,7 +2,7 @@ use crate::model::Settings;
 use std::{fs, io, path::Path};
 
 pub(super) fn load_settings(path: &Path, legacy_path: &Path) -> Result<Settings, &'static str> {
-    let read_error = "앱 설정 파일을 읽을 수 없습니다.";
+    let read_error = "errors.settingsRead";
     let (bytes, migrate) = match fs::read(path) {
         Ok(bytes) => (bytes, false),
         Err(error) if error.kind() == io::ErrorKind::NotFound => match fs::read(legacy_path) {
@@ -12,11 +12,9 @@ pub(super) fn load_settings(path: &Path, legacy_path: &Path) -> Result<Settings,
         },
         Err(_) => return Err(read_error),
     };
-    let settings =
-        serde_json::from_slice(&bytes).map_err(|_| "앱 설정 파일의 형식을 읽을 수 없습니다.")?;
+    let settings = serde_json::from_slice(&bytes).map_err(|_| "errors.settingsFormat")?;
     if migrate {
-        save_settings(path, &settings)
-            .map_err(|_| "이전 앱 설정을 새 위치에 저장할 수 없습니다.")?;
+        save_settings(path, &settings).map_err(|_| "errors.settingsMigration")?;
     }
     Ok(settings)
 }

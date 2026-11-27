@@ -11,6 +11,15 @@ impl AppState {
             data.settings.cli_path.clone()
         };
         let found = cli::discover(preferred.as_deref(), &self.home).await;
+        if let Some(cli) = &found {
+            log::info!(
+                "AWS CLI detected: version={}, mfa_supported={}",
+                cli.version,
+                cli.mfa_supported
+            );
+        } else {
+            log::info!("AWS CLI discovery completed without an executable");
+        }
         let mut data = self.data();
         data.scanning = false;
         data.profiles_error = None;
@@ -20,9 +29,7 @@ impl AppState {
 
     pub async fn choose_cli(&self, path: PathBuf) -> Result<(), String> {
         let _guard = self.discovery.lock().await;
-        let found = cli::inspect(&path)
-            .await
-            .ok_or("선택한 파일이 유효한 AWS CLI 실행 파일인지 확인해 주세요.")?;
+        let found = cli::inspect(&path).await.ok_or("errors.invalidCli")?;
         let mut data = self.data();
         self.update_settings(&mut data, |settings| settings.cli_path = Some(path))?;
         data.cli = Some(found);
@@ -44,7 +51,7 @@ impl AppState {
         let result = async {
             let names = cli::list(&cli, &self.files)
                 .await
-                .map_err(|issue| issue.text().to_string())?;
+                .map_err(|issue| issue.key().to_string())?;
             let profiles = self.files.read()?;
             let preferred = ["AWS_DEFAULT_PROFILE", "AWS_PROFILE"]
                 .iter()
@@ -69,10 +76,9 @@ impl AppState {
             .await
             .map_err(|issue| {
                 if issue == cli::Issue::Denied {
-                    "MFA 장치를 조회하려면 IAM 사용자에게 iam:ListMFADevices 권한이 필요합니다."
-                        .into()
+                    "errors.mfaListPermission".into()
                 } else {
-                    issue.text().into()
+                    issue.key().into()
                 }
             })
     }
@@ -82,7 +88,7 @@ impl AppState {
         {
             let mut data = self.data();
             if data.wizard || data.closing {
-                return Err("SSO 마법사가 이미 실행 중입니다.".into());
+                return Err("errors.ssoWizardBusy".into());
             }
             data.wizard = true;
         }

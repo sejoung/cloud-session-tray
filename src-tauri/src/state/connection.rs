@@ -38,7 +38,7 @@ impl AppState {
                 .iter()
                 .any(|session| session.login.profile() == profile);
         if !saved && !matches!(kind, Kind::IamSource | Kind::IamSession | Kind::Sso) {
-            return Err("도구에 연결할 수 있는 AWS 프로필을 선택해 주세요.".into());
+            return Err("errors.toolProfileRequired".into());
         }
         let region = profiles.region(&profile);
         Ok(ToolConnection {
@@ -69,16 +69,16 @@ impl AppState {
                 return Ok(ConnectionCheck {
                     status: Status::NeedsRenewal,
                     identity: None,
-                    message: Some("이 AWS 프로필에 자격 증명이 없습니다.".into()),
+                    message: Some("errors.noProfileCredentials".into()),
                 });
             }
-            Kind::Unsupported => return Err("앱에서 지원하는 AWS 프로필을 선택해 주세요.".into()),
+            Kind::Unsupported => return Err("errors.unsupportedProfile".into()),
         }
         let result = cli::identity(&cli, &self.files, profile, &Cancel::new()).await;
         if profiles.fingerprint(&self.files, profile)
             != self.files.read()?.fingerprint(&self.files, profile)
         {
-            return Err("확인 중 AWS 프로필 파일이 변경되었습니다. 다시 확인해 주세요.".into());
+            return Err("errors.filesChangedDuringCheck".into());
         }
         Ok(match result {
             Ok(identity) => ConnectionCheck {
@@ -89,7 +89,7 @@ impl AppState {
             Err(issue) => ConnectionCheck {
                 status: issue.status(),
                 identity: None,
-                message: Some(issue.text().into()),
+                message: Some(issue.key().into()),
             },
         })
     }

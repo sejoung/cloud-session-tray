@@ -1,3 +1,4 @@
+use super::logging::operation;
 use crate::state::AppState;
 use std::{sync::Arc, time::Duration};
 use tauri::{AppHandle, Manager, State};
@@ -11,21 +12,27 @@ pub(super) async fn install_cli(
     app: AppHandle,
     state: State<'_, Arc<AppState>>,
 ) -> Result<(), String> {
+    operation(
+        "AWS CLI installer download and launch",
+        download_installer(&app, &state).await,
+    )
+}
+
+async fn download_installer(app: &AppHandle, state: &AppState) -> Result<(), String> {
     let _guard = state
         .installer
         .try_lock()
-        .map_err(|_| "설치 파일을 이미 다운로드하고 있습니다.")?;
+        .map_err(|_| "errors.installerBusy")?;
     let (filename, magic): (&str, &[u8]) = if cfg!(target_os = "macos") {
         ("AWSCLIV2.pkg", b"xar!")
     } else if cfg!(windows) {
         ("AWSCLIV2-User.msi", b"\xd0\xcf\x11\xe0\xa1\xb1\x1a\xe1")
     } else {
-        return Err("자동 설치는 macOS와 Windows에서 지원됩니다.".into());
+        return Err("errors.installerUnsupported".into());
     };
-    let failure =
-        "AWS 공식 설치 파일을 다운로드할 수 없습니다. 연결을 확인하고 다시 시도해 주세요.";
-    let invalid_file = "AWS에서 받은 설치 파일을 확인할 수 없습니다.";
-    let storage_error = "설치 파일을 저장할 수 없습니다. 디스크 공간과 폴더 권한을 확인해 주세요.";
+    let failure = "errors.installerDownload";
+    let invalid_file = "errors.installerInvalid";
+    let storage_error = "errors.installerSave";
     let cache = app
         .path()
         .app_cache_dir()
@@ -76,8 +83,5 @@ pub(super) async fn install_cli(
     temp.persist(&path).map_err(|_| storage_error)?;
     app.opener()
         .open_path(path.to_string_lossy().into_owned(), None::<&str>)
-        .map_err(|_| {
-            "OS 설치 창을 열 수 없습니다. 기존 실행 파일을 선택하거나 공식 문서에서 설치해 주세요."
-                .into()
-        })
+        .map_err(|_| "errors.installerOpen".into())
 }

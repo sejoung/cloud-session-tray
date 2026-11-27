@@ -1,5 +1,6 @@
+import { t } from "./i18n";
 import type { IamRegistration } from "../domain";
-import { bindSubmit, element } from "./html";
+import { bindSubmit, element, text } from "./html";
 import { bindRegionField, regionField } from "./region-field";
 
 export function showIamRegistration(
@@ -10,25 +11,25 @@ export function showIamRegistration(
   if (dialog.open) return;
   dialog.innerHTML = `<form id="registration-form">
     <div class="dialog-heading">
-      <h2 id="registration-title">IAM 원본 프로필 등록</h2>
-      <button type="button" class="icon-button" data-close="registration" aria-label="닫기">×</button>
+      <h2 id="registration-title">${text("common.openIamRegistration")}</h2>
+      <button type="button" class="icon-button" data-close="registration" aria-label="${text("common.close")}">×</button>
     </div>
-    <p class="dialog-summary">MFA 세션에 사용할 장기 IAM 액세스 키를 AWS 공유 자격 증명 파일에 저장합니다.</p>
-    <label class="field">AWS 프로필 이름
+    <p class="dialog-summary">${text("iam.description")}</p>
+    <label class="field">${text("common.profileName")}
       <input name="name" required maxlength="256" autofocus />
     </label>
-    <label class="field">액세스 키 ID
+    <label class="field">${text("iam.accessKeyId")}
       <input name="accessKeyId" type="password" required minlength="16" maxlength="128" autocomplete="off" />
     </label>
-    <label class="field">비밀 액세스 키
+    <label class="field">${text("iam.secretKey")}
       <input name="secretAccessKey" type="password" required minlength="16" maxlength="256" autocomplete="off" />
     </label>
-    ${regionField("기본 리전 (선택)", "리전 설정 안 함", region)}
-    <p class="field-hint">AWS CLI 출력 형식의 기본값은 JSON입니다.</p>
+    ${regionField(t("iam.defaultRegion"), t("iam.noRegion"), region)}
+    <p class="field-hint">${text("iam.outputFormat")}</p>
     <p class="form-error" role="alert" hidden></p>
     <div class="actions dialog-actions">
-      <button class="button primary" type="submit">등록</button>
-      <button class="button" type="button" data-close="registration">취소</button>
+      <button class="button primary" type="submit">${text("common.register")}</button>
+      <button class="button" type="button" data-close="registration">${text("common.cancel")}</button>
     </div>
   </form>`;
 

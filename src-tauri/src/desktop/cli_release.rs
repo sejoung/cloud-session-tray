@@ -45,6 +45,11 @@ pub(super) async fn latest_cli_version(
     }
 
     let version = fetch_version().await;
+    if let Some(version) = &version {
+        log::info!("AWS CLI release check finished: version={version}");
+    } else {
+        log::warn!("AWS CLI release check failed");
+    }
     let result = ReleaseCheck {
         checked_at: Utc::now(),
         version: version.clone(),

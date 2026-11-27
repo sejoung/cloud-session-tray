@@ -4,7 +4,8 @@ export type Login =
   | { kind: "sso"; profile: string };
 export type Status = "unknown" | "available" | "needsRenewal";
 export type Phase = "queued" | "signingIn" | "checking";
-export type Preferences = { notify: boolean; notifyMinutes: number };
+export type Language = "en" | "ko";
+export type Preferences = { notify: boolean; notifyMinutes: number; language: Language | null };
 export type Profile = {
   name: string;
   preferred: boolean;
@@ -29,7 +30,7 @@ export type Session = {
   checkedAt: string | null;
   expiresAt: string | null;
   checkMessage: string | null;
-  activity: string | null;
+  activity: string[] | null;
   canCancel: boolean;
 };
 export type Dashboard = {

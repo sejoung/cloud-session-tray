@@ -1,7 +1,37 @@
 use super::{AppState, storage::save_settings};
-use crate::model::{Preferences, Settings};
+use crate::model::{Language, Preferences, Settings};
 use std::fs;
 use tokio::runtime::Handle;
+
+#[tokio::test]
+async fn follows_system_language_for_old_preferences_and_persists_an_override() {
+    let directory = tempfile::tempdir().unwrap();
+    fs::write(
+        directory.path().join("settings.json"),
+        r#"{"preferences":{"notify":false,"notifyMinutes":10}}"#,
+    )
+    .unwrap();
+    let open = || {
+        AppState::new(
+            directory.path().to_path_buf(),
+            directory.path().to_path_buf(),
+            Handle::current(),
+        )
+        .unwrap()
+    };
+    let state = open();
+    state.set_system_language(Language::Ko);
+    assert!(matches!(state.language(), Language::Ko));
+    state
+        .save_preferences(Preferences {
+            language: Some(Language::En),
+            ..Preferences::default()
+        })
+        .unwrap();
+    let reopened = open();
+    reopened.set_system_language(Language::Ko);
+    assert!(matches!(reopened.language(), Language::En));
+}
 
 #[tokio::test]
 async fn migrates_settings_only_when_the_current_file_is_missing() {
@@ -14,6 +44,7 @@ async fn migrates_settings_only_when_the_current_file_is_missing() {
         preferences: Preferences {
             notify: true,
             notify_minutes: 25,
+            ..Preferences::default()
         },
         ..Settings::default()
     };
@@ -70,6 +101,7 @@ async fn expiration_notifications_follow_current_profile_evidence_and_send_once(
         settings.preferences = Preferences {
             notify: true,
             notify_minutes: 10,
+            ..Preferences::default()
         };
         settings.sessions.push(Session {
             id: "work-id".into(),

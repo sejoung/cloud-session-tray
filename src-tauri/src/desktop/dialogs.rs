@@ -23,12 +23,10 @@ pub(super) async fn selected_file(
     } else {
         dialog.pick_file(selected);
     }
-    let path = receive
-        .await
-        .map_err(|_| "파일 선택 창을 열 수 없습니다.")?;
+    let path = receive.await.map_err(|_| "errors.fileDialog")?;
     path.map(|file| {
         file.into_path()
-            .map_err(|_| "로컬 파일을 선택해 주세요.".into())
+            .map_err(|_| "errors.localFileRequired".into())
     })
     .transpose()
 }

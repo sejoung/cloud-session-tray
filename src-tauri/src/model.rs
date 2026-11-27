@@ -112,7 +112,7 @@ pub struct IamRegistration {
 impl IamRegistration {
     pub fn validate(&self) -> Result<(), String> {
         if self.access_key_id.starts_with("ASIA") {
-            return Err("IAM 원본 프로필에는 세션 토큰이 없는 장기 액세스 키가 필요합니다.".into());
+            return Err("errors.longLivedKeyRequired".into());
         }
         if !(16..=128).contains(&self.access_key_id.len())
             || !self
@@ -125,7 +125,7 @@ impl IamRegistration {
                 .bytes()
                 .all(|byte| byte.is_ascii_graphic())
         {
-            return Err("AWS 액세스 키 ID와 비밀 액세스 키를 확인해 주세요.".into());
+            return Err("errors.invalidAccessKeys".into());
         }
         if self.region.len() > 64
             || !self
@@ -133,7 +133,7 @@ impl IamRegistration {
                 .bytes()
                 .all(|byte| byte.is_ascii_alphanumeric() || byte == b'-')
         {
-            return Err("AWS 리전 이름을 확인해 주세요.".into());
+            return Err("errors.invalidRegion".into());
         }
         Ok(())
     }
@@ -160,10 +160,18 @@ pub struct SessionDraft {
 }
 
 #[derive(Clone, Copy, Deserialize, Serialize)]
+#[serde(rename_all = "lowercase")]
+pub enum Language {
+    En,
+    Ko,
+}
+
+#[derive(Clone, Copy, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase", default)]
 pub struct Preferences {
     pub notify: bool,
     pub notify_minutes: u16,
+    pub language: Option<Language>,
 }
 
 impl Default for Preferences {
@@ -171,6 +179,7 @@ impl Default for Preferences {
         Self {
             notify: false,
             notify_minutes: 10,
+            language: None,
         }
     }
 }
@@ -196,6 +205,6 @@ pub struct SessionView {
     pub checked_at: Option<DateTime<Utc>>,
     pub expires_at: Option<DateTime<Utc>>,
     pub check_message: Option<String>,
-    pub activity: Option<String>,
+    pub activity: Option<Vec<String>>,
     pub can_cancel: bool,
 }

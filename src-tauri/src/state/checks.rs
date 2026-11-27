@@ -27,25 +27,19 @@ pub(super) async fn verify(
             (Login::IamMfa(_), Kind::IamSession) if profiles.target_allowed(profile) => {}
             (Login::Sso { .. }, Kind::Sso) => {}
             (Login::IamMfa(_), Kind::Unconfigured) => {
-                return Err((
-                    Status::NeedsRenewal,
-                    "아직 대상 프로필에 임시 자격 증명이 없습니다.".into(),
-                ));
+                return Err((Status::NeedsRenewal, "errors.noTemporaryCredentials".into()));
             }
             _ => {
-                return Err((
-                    Status::NeedsRenewal,
-                    "AWS 프로필의 인증 설정을 확인해 주세요.".into(),
-                ));
+                return Err((Status::NeedsRenewal, "errors.invalidAuthentication".into()));
             }
         }
         cli::identity(cli, &state.files, profile, cancel)
             .await
-            .map_err(|issue| (issue.status(), issue.text().into()))
+            .map_err(|issue| (issue.status(), issue.key().into()))
     }
     .await;
     if cancel.requested() {
-        state.activity(&session.id, Issue::Cancelled.text().into());
+        state.activity(&session.id, Issue::Cancelled.key().into());
         return None;
     }
     let current = state
@@ -57,7 +51,7 @@ pub(super) async fn verify(
         (
             Status::Unknown,
             None,
-            Some("확인 중 AWS 프로필 파일이 변경되었습니다. 다시 확인해 주세요.".into()),
+            Some("errors.filesChangedDuringCheck".into()),
         )
     } else {
         match result {
@@ -66,6 +60,11 @@ pub(super) async fn verify(
         }
     };
     let mut data = state.data();
+    if let Some(code) = &message {
+        log::warn!("AWS identity check did not verify credentials: code={code}");
+    } else {
+        log::info!("AWS identity verified");
+    }
     let check = Check {
         status,
         checked_at: Utc::now(),
@@ -83,7 +82,8 @@ pub(super) async fn verify(
         }
         settings.checks.insert(session.id.clone(), check);
     }) {
-        data.activity.insert(session.id.clone(), error);
+        log::warn!("Could not persist the AWS identity check: code={error}");
+        data.activity.insert(session.id.clone(), vec![error]);
         return None;
     }
     Some(status)

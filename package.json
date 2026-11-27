@@ -24,7 +24,7 @@
     "test": "npm run test:web && npm run test:rust",
     "test:web": "vitest run --environment jsdom",
     "test:e2e": "playwright test --project=chromium",
-    "docs:capture": "playwright test --project=manual",
+    "docs:capture": "playwright test --project=manual-ko --project=manual-en",
     "test:rust": "cargo test --locked --manifest-path src-tauri/Cargo.toml"
   },
   "dependencies": {

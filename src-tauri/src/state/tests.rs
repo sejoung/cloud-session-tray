@@ -187,8 +187,8 @@ async fn iam_renewal_survives_restart_and_invalidates_on_external_edits() {
     finished(&state).await;
     assert_eq!(fs::read(&state.files.credentials).unwrap(), before);
     assert_eq!(
-        state.dashboard().sessions[0].activity.as_deref(),
-        Some(Issue::MfaRejected.text())
+        state.dashboard().sessions[0].activity,
+        Some(vec![Issue::MfaRejected.key().into()])
     );
 
     let restarted = test_state(&work);
@@ -337,8 +337,8 @@ async fn cancelled_identity_center_login_can_be_retried() {
     state.cancel(&id);
     finished(&state).await;
     assert_eq!(
-        state.dashboard().sessions[0].activity.as_deref(),
-        Some(Issue::Cancelled.text())
+        state.dashboard().sessions[0].activity,
+        Some(vec![Issue::Cancelled.key().into()])
     );
 
     fs::remove_file(&slow).unwrap();

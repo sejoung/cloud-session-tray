@@ -7,10 +7,9 @@ use std::{
 
 impl Files {
     pub(super) fn append_config(&self, current: &Profiles, entry: &str) -> Result<(), String> {
-        let read_error = "AWS 설정 파일을 읽을 수 없습니다. 경로와 권한을 확인해 주세요.";
-        let save_error =
-            "AWS 설정 파일에 프로필을 추가할 수 없습니다. 폴더와 파일 권한을 확인해 주세요.";
-        let changed = "다른 도구에서 AWS 파일을 수정했습니다. 프로필을 다시 읽고 가져와 주세요.";
+        let read_error = "errors.configRead";
+        let save_error = "errors.configWrite";
+        let changed = "errors.filesChangedBeforeImport";
         let path = match self.config.canonicalize() {
             Ok(path) => path,
             Err(error) if error.kind() == io::ErrorKind::NotFound => self.config.clone(),

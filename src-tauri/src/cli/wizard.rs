@@ -21,15 +21,13 @@ pub async fn configure_sso(cli: &Cli, files: &Files) -> Result<(), String> {
         .stdin(Stdio::inherit())
         .stdout(Stdio::inherit())
         .stderr(Stdio::inherit());
-    let mut child = process
-        .spawn()
-        .map_err(|_| "SSO 마법사 콘솔을 열 수 없습니다.")?;
+    let mut child = process.spawn().map_err(|_| "errors.ssoConsole")?;
     match time::timeout(Duration::from_secs(600), child.wait()).await {
         Ok(Ok(status)) if status.success() => Ok(()),
-        Ok(_) => Err("SSO 마법사가 중단되었습니다. 설정을 확인하고 다시 시도해 주세요.".into()),
+        Ok(_) => Err("errors.ssoWizardInterrupted".into()),
         Err(_) => {
             let _ = child.kill().await;
-            Err("SSO 마법사 응답 시간이 초과되었습니다.".into())
+            Err("errors.ssoWizardTimeout".into())
         }
     }
 }
@@ -38,7 +36,7 @@ pub async fn configure_sso(cli: &Cli, files: &Files) -> Result<(), String> {
 pub async fn configure_sso(cli: &Cli, files: &Files) -> Result<(), String> {
     use std::{fmt::Write as _, os::unix::fs::PermissionsExt};
 
-    let failure = "터미널에서 SSO 마법사를 열 수 없습니다.";
+    let failure = "errors.ssoTerminal";
     let work = tempfile::tempdir().map_err(|_| failure)?;
     let script_path = work.path().join("Configure AWS SSO.command");
     let result_path = work.path().join("result");
@@ -46,7 +44,7 @@ pub async fn configure_sso(cli: &Cli, files: &Files) -> Result<(), String> {
         path.to_str()
             .map(shell_words::quote)
             .map(|word| word.into_owned())
-            .ok_or_else(|| "SSO 마법사의 파일 경로를 읽을 수 없습니다.".into())
+            .ok_or_else(|| "errors.ssoWizardPath".into())
     };
     let mut script = String::from("#!/bin/sh\n");
     let _ = writeln!(script, "result={}", quote(&result_path)?);
@@ -91,24 +89,20 @@ pub async fn configure_sso(cli: &Cli, files: &Files) -> Result<(), String> {
             match tokio::fs::read_to_string(&result_path).await {
                 Ok(result) if result.trim() == "0" => return Ok(()),
                 Ok(result) if !result.is_empty() => {
-                    return Err(
-                        "SSO 마법사가 중단되었습니다. 설정을 확인하고 다시 시도해 주세요.".into(),
-                    );
+                    return Err("errors.ssoWizardInterrupted".into());
                 }
                 Ok(_) => {}
                 Err(err) if err.kind() == std::io::ErrorKind::NotFound => {}
-                Err(_) => return Err("SSO 마법사 결과를 읽을 수 없습니다.".into()),
+                Err(_) => return Err("errors.ssoWizardResult".into()),
             }
             time::sleep(Duration::from_millis(400)).await;
         }
     })
     .await
-    .unwrap_or_else(|_| {
-        Err("SSO 마법사 응답 시간이 초과되었습니다. 터미널 상태를 확인해 주세요.".into())
-    })
+    .unwrap_or_else(|_| Err("errors.ssoWizardTerminalTimeout".into()))
 }
 
 #[cfg(not(any(target_os = "macos", windows)))]
 pub async fn configure_sso(_cli: &Cli, _files: &Files) -> Result<(), String> {
-    Err("SSO 마법사는 macOS와 Windows에서 지원됩니다.".into())
+    Err("errors.ssoWizardUnsupported".into())
 }

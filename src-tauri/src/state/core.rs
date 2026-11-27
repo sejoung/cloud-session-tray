@@ -1,7 +1,7 @@
 use super::storage::{load_settings, save_settings};
 use crate::{
     cli::Cancel,
-    model::{Cli, Phase, Session, Settings},
+    model::{Cli, Language, Phase, Session, Settings},
     profiles::Files,
 };
 use std::{
@@ -20,12 +20,13 @@ pub(super) struct Job {
 
 pub(super) struct Data {
     pub(super) settings: Settings,
+    system_language: Language,
     pub(super) cli: Option<Cli>,
     pub(super) scanning: bool,
     pub(super) wizard: bool,
     pub(super) closing: bool,
     pub(super) jobs: BTreeMap<String, Job>,
-    pub(super) activity: BTreeMap<String, String>,
+    pub(super) activity: BTreeMap<String, Vec<String>>,
     pub(super) profiles_error: Option<String>,
     pub(super) settings_error: Option<String>,
 }
@@ -54,7 +55,10 @@ impl AppState {
         let (settings, settings_error) = match load_settings(&settings_path, &legacy_settings_path)
         {
             Ok(settings) => (settings, None),
-            Err(error) => (Settings::default(), Some(error.into())),
+            Err(error) => {
+                log::warn!("App settings unavailable: code={error}");
+                (Settings::default(), Some(error.into()))
+            }
         };
         Ok(Self {
             files: Files::new(&home)?,
@@ -63,6 +67,7 @@ impl AppState {
             runtime,
             data: Mutex::new(Data {
                 settings,
+                system_language: Language::En,
                 cli: None,
                 scanning: true,
                 wizard: false,
@@ -92,8 +97,7 @@ impl AppState {
         }
         let mut settings = data.settings.clone();
         update(&mut settings);
-        save_settings(&self.settings_path, &settings)
-            .map_err(|_| "앱 설정을 저장할 수 없습니다. 로컬 설정 폴더 권한을 확인해 주세요.")?;
+        save_settings(&self.settings_path, &settings).map_err(|_| "errors.settingsSave")?;
         data.settings = settings;
         Ok(())
     }
@@ -102,13 +106,25 @@ impl AppState {
         self.data().settings.sessions.clone()
     }
 
+    pub fn set_system_language(&self, language: Language) {
+        self.data().system_language = language;
+    }
+
+    pub fn language(&self) -> Language {
+        let data = self.data();
+        data.settings
+            .preferences
+            .language
+            .unwrap_or(data.system_language)
+    }
+
     pub(super) fn current_cli(&self) -> Result<Cli, String> {
         self.data()
             .cli
             .as_ref()
             .filter(|cli| cli.v2)
             .cloned()
-            .ok_or_else(|| "AWS CLI v2를 설치하거나 실행 파일을 선택해 주세요.".into())
+            .ok_or_else(|| "errors.cliRequired".into())
     }
 
     pub(super) fn phase(&self, id: &str, phase: Phase) {
@@ -118,6 +134,6 @@ impl AppState {
     }
 
     pub(super) fn activity(&self, id: &str, message: String) {
-        self.data().activity.insert(id.into(), message);
+        self.data().activity.insert(id.into(), vec![message]);
     }
 }

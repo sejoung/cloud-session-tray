@@ -1,6 +1,7 @@
+import { t } from "./i18n";
 import { profileName, type Login, type Profile, type SessionDraft } from "../domain";
 import { editorDefaults, suggestTarget, type EditorSelection } from "./editor-suggestions";
-import { bindSubmit, element, escape } from "./html";
+import { bindSubmit, element, escape, text } from "./html";
 import { bindMfaLookup } from "./mfa-devices";
 import { bindRegionField, regionField } from "./region-field";
 
@@ -14,7 +15,7 @@ type EditorOptions = EditorSelection & {
 type Defaults = ReturnType<typeof editorDefaults>;
 
 function profileOption(profile: Profile, current?: string): string {
-  const label = [profile.name, profile.region, profile.preferred ? "기본 프로필" : null].filter(Boolean).join(" · ");
+  const label = [profile.name, profile.region, profile.preferred ? t("common.defaultProfile") : null].filter(Boolean).join(" · ");
   return `<option value="${escape(profile.name)}" ${profile.name === current ? "selected" : ""}>${escape(label)}</option>`;
 }
 
@@ -22,34 +23,34 @@ function iamFields(items: Profile[], defaults: Defaults): string {
   const { sources, source, target, device, duration, region } = defaults;
   const targets = items.filter((profile) => profile.targetAllowed);
   const setup = `<div class="inline-help">
-    <p>IAM 장기 키를 등록한 원본 프로필이 필요합니다.</p>
-    <button type="button" class="button subtle" data-docs="iam">프로필 설정 문서 ↗</button>
+    <p>${text("editor.sourceRequired")}</p>
+    <button type="button" class="button subtle" data-docs="iam">${text("editor.profileDocs")}</button>
   </div>`;
   return `<fieldset data-auth="iamMfa">
     ${sources.length === 0 ? setup : ""}
-    <label class="field">원본 프로필
+    <label class="field">${text("common.sourceProfile")}
       <select name="source" required>
-        <option value="">IAM 장기 키 프로필 선택</option>
+        <option value="">${text("editor.selectSource")}</option>
         ${sources.map((profile) => profileOption(profile, source)).join("")}
       </select>
     </label>
-    <button class="button subtle registration-link" type="button" data-action="editor-register-iam">IAM 원본 프로필 등록</button>
-    <label class="field">갱신 대상 프로필
-      <input name="target" list="targets" required maxlength="256" placeholder="예시 work" value="${escape(target)}" />
+    <button class="button subtle registration-link" type="button" data-action="editor-register-iam">${text("common.openIamRegistration")}</button>
+    <label class="field">${text("common.targetProfile")}
+      <input name="target" list="targets" required maxlength="256" placeholder="${text("editor.targetExample")}" value="${escape(target)}" />
       <datalist id="targets">${targets.map((profile) => profileOption(profile)).join("")}</datalist>
     </label>
-    <p class="field-hint">Terraform과 kubeconfig에서 쓰는 이름으로 설정하세요.</p>
-    ${regionField("초기 대상 리전 (선택)", "대상에 리전이 없으면 원본 리전 사용", region ?? "")}
-    <label class="field">MFA 장치 ARN 또는 시리얼
+    <p class="field-hint">${text("editor.targetHelp")}</p>
+    ${regionField(t("editor.targetRegion"), t("editor.inheritedRegion"), region ?? "")}
+    <label class="field">${text("editor.mfaDevice")}
       <input name="device" required maxlength="256" spellcheck="false" value="${escape(device)}" />
     </label>
     <div class="mfa-lookup">
-      <button type="button" class="button" data-device-lookup aria-describedby="mfa-device-status">MFA 장치 찾기</button>
-      <select data-device-options aria-label="조회한 MFA 장치" hidden></select>
+      <button type="button" class="button" data-device-lookup aria-describedby="mfa-device-status">${text("editor.findMfa")}</button>
+      <select data-device-options aria-label="${text("editor.foundMfa")}" hidden></select>
       <p id="mfa-device-status" class="muted" data-device-status role="status"></p>
     </div>
-    <label class="field">세션 기간 (초, 선택)
-      <input name="duration" type="number" min="900" max="129600" step="1" placeholder="AWS CLI 기본값"
+    <label class="field">${text("editor.durationSeconds")}
+      <input name="duration" type="number" min="900" max="129600" step="1" placeholder="${text("editor.cliDefault")}"
         value="${duration ?? ""}" />
     </label>
   </fieldset>`;
@@ -57,16 +58,14 @@ function iamFields(items: Profile[], defaults: Defaults): string {
 
 function ssoFields({ sso, ssoProfile }: Defaults): string {
   return `<fieldset data-auth="sso">
-    <label class="field">Identity Center 프로필
+    <label class="field">${text("editor.ssoProfile")}
       <select name="profile" required>
-        <option value="">로컬 SSO 프로필 선택</option>
+        <option value="">${text("editor.selectSso")}</option>
         ${sso.map((profile) => profileOption(profile, ssoProfile)).join("")}
       </select>
     </label>
-    <div class="inline-help">
-      <p>새 프로필이 필요하면 조직의 시작 URL 또는 발급자 URL과 SSO 리전을 준비하세요.</p>
-      <button class="button subtle" type="button" data-action="editor-wizard">SSO 마법사 열기</button>
-    </div>
+    <button class="button sso-wizard" type="button" data-action="editor-wizard" aria-describedby="sso-wizard-help">${text("common.ssoWizard")}</button>
+    <p class="field-hint" id="sso-wizard-help">${text("editor.ssoHelp")}</p>
   </fieldset>`;
 }
 
@@ -74,10 +73,10 @@ function editorHtml(items: Profile[], defaults: Defaults, { session, preset }: E
   const unsupported = items.filter((profile) => profile.kind === "unsupported");
   return `<form id="session-form">
     <div class="dialog-heading">
-      <h2 id="editor-title">${session ? "프로필 편집" : "AWS 프로필 추가"}</h2>
-      <button type="button" class="icon-button" data-close="editor" aria-label="닫기">×</button>
+      <h2 id="editor-title">${session ? t("editor.editProfile") : t("editor.addProfile")}</h2>
+      <button type="button" class="icon-button" data-close="editor" aria-label="${text("common.close")}">×</button>
     </div>
-    <label class="field">인증 방식
+    <label class="field">${text("common.authentication")}
       <select name="kind">
         <option value="iamMfa" ${defaults.kind === "iamMfa" ? "selected" : ""}>IAM MFA</option>
         <option value="sso" ${defaults.kind === "sso" ? "selected" : ""}>IAM Identity Center</option>
@@ -85,19 +84,19 @@ function editorHtml(items: Profile[], defaults: Defaults, { session, preset }: E
     </label>
     ${iamFields(items, defaults)}
     ${ssoFields(defaults)}
-    <label class="field">표시 이름
-      <input name="label" placeholder="AWS 프로필 이름 사용" maxlength="64" value="${escape(session?.label ?? preset?.label ?? "")}" />
+    <label class="field">${text("editor.displayName")}
+      <input name="label" placeholder="${text("editor.useProfileName")}" maxlength="64" value="${escape(session?.label ?? preset?.label ?? "")}" />
     </label>
-    <label class="field">작업 메모 (선택)
+    <label class="field">${text("common.optionalTask")}
       <textarea name="task" rows="2" maxlength="4000">${escape(preset?.task ?? session?.task ?? "")}</textarea>
     </label>
-    ${unsupported.length ? `<details class="unsupported"><summary>지원 범위 외 프로필 (${unsupported.length})</summary>
+    ${unsupported.length ? `<details class="unsupported"><summary>${text("editor.unsupportedCount", { count: unsupported.length })}</summary>
       <p>${unsupported.map((profile) => escape(profile.name)).join(", ")}</p></details>` : ""}
     <p class="form-error" role="alert" hidden></p>
     <div class="actions dialog-actions">
-      <button class="button primary" type="submit">저장</button>
-      <button class="button" type="button" data-close="editor">취소</button>
-      ${session ? '<button class="button subtle danger" type="button" data-action="remove">목록에서 제거</button>' : ""}
+      <button class="button primary" type="submit">${text("common.save")}</button>
+      <button class="button" type="button" data-close="editor">${text("common.cancel")}</button>
+      ${session ? `<button class="button subtle danger" type="button" data-action="remove">${text("editor.removeFromList")}</button>` : ""}
     </div>
   </form>`;
 }

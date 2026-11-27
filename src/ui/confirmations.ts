@@ -1,5 +1,5 @@
 import { profileName, type Session } from "../domain";
-import { bindSubmit, element, escape } from "./html";
+import { bindSubmit, element, escape, text } from "./html";
 
 export function showOtp(
   dialog: HTMLDialogElement,
@@ -8,18 +8,18 @@ export function showOtp(
 ): void {
   dialog.innerHTML = `<form>
     <div class="dialog-heading">
-      <h2 id="otp-title">IAM MFA 갱신</h2>
-      <button type="button" class="icon-button" data-close="otp" aria-label="닫기">×</button>
+      <h2 id="otp-title">${text("confirmation.renewMfa")}</h2>
+      <button type="button" class="icon-button" data-close="otp" aria-label="${text("common.close")}">×</button>
     </div>
     <p class="dialog-summary">${escape(session.label)} <span class="mono">${escape(profileName(session.login))}</span></p>
-    <label class="field">MFA 인증 코드
+    <label class="field">${text("confirmation.mfaCode")}
       <input type="password" inputmode="numeric" pattern="[0-9]{6}" minlength="6" maxlength="6"
         autocomplete="off" name="otp" required autofocus />
     </label>
     <p class="form-error" role="alert" hidden></p>
     <div class="actions dialog-actions">
-      <button class="button primary" type="submit">갱신</button>
-      <button class="button" type="button" data-close="otp">취소</button>
+      <button class="button primary" type="submit">${text("common.renew")}</button>
+      <button class="button" type="button" data-close="otp">${text("common.cancel")}</button>
     </div>
   </form>`;
   const form = element<HTMLFormElement>(dialog, "form");
@@ -36,11 +36,11 @@ export function showOtp(
 
 export function confirmRemoval(dialog: HTMLDialogElement, session: Session): Promise<boolean> {
   dialog.innerHTML = `<form method="dialog">
-    <div class="dialog-heading"><h2 id="confirm-title">세션 목록에서 제거</h2></div>
-    <p class="dialog-summary">${escape(session.label)} 연결을 이 앱에서 제거합니다.</p>
+    <div class="dialog-heading"><h2 id="confirm-title">${text("confirmation.removeSession")}</h2></div>
+    <p class="dialog-summary">${text("confirmation.removeDescription", { label: session.label })}</p>
     <div class="actions dialog-actions">
-      <button class="button" value="cancel" autofocus>취소</button>
-      <button class="button danger" value="remove">제거</button>
+      <button class="button" value="cancel" autofocus>${text("common.cancel")}</button>
+      <button class="button danger" value="remove">${text("common.remove")}</button>
     </div>
   </form>`;
   dialog.returnValue = "";

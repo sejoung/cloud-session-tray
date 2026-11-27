@@ -16,7 +16,7 @@ impl AppState {
         let profiles = self.files.read()?;
         let mut data = self.data();
         if data.closing {
-            return Err("앱을 종료하고 있습니다.".into());
+            return Err("errors.appClosing".into());
         }
         let session = data
             .settings
@@ -24,23 +24,23 @@ impl AppState {
             .iter()
             .find(|session| session.id == id)
             .cloned()
-            .ok_or("저장된 프로필을 찾을 수 없습니다.")?;
+            .ok_or("errors.sessionNotFound")?;
         if let Some(job) = data.jobs.get(id) {
             if matches!(action, Action::Sso) && job.shared_sso {
                 // A shared login already includes this profile's own STS check.
                 return Ok(());
             }
-            return Err("이 프로필에서 진행 중인 작업이 있습니다.".into());
+            return Err("errors.sessionBusy".into());
         }
         let mut sessions = vec![session.clone()];
         let phase = match (&action, &session.login) {
             (Action::Check, _) => Phase::Checking,
             (Action::Mfa(otp), Login::IamMfa(_)) => {
                 if !cli.mfa_supported {
-                    return Err("IAM MFA 갱신을 지원하는 AWS CLI v2로 업데이트해 주세요.".into());
+                    return Err("errors.mfaCliRequired".into());
                 }
                 if otp.len() != 6 || !otp.bytes().all(|byte| byte.is_ascii_digit()) {
-                    return Err("6자리 OTP를 입력해 주세요.".into());
+                    return Err("errors.invalidOtp".into());
                 }
                 Phase::Queued
             }
@@ -48,7 +48,7 @@ impl AppState {
                 profiles.validate(&session.login)?;
                 let group = profiles
                     .sso_group(profile)
-                    .ok_or("SSO 세션 설정을 확인해 주세요.")?;
+                    .ok_or("errors.ssoSessionConfig")?;
                 sessions.extend(
                     data.settings
                         .sessions
@@ -65,13 +65,11 @@ impl AppState {
                     .iter()
                     .any(|session| data.jobs.contains_key(&session.id))
                 {
-                    return Err(
-                        "같은 SSO 세션을 사용하는 프로필에서 상태 확인이 진행 중입니다.".into(),
-                    );
+                    return Err("errors.ssoGroupBusy".into());
                 }
                 Phase::SigningIn
             }
-            _ => return Err("AWS 프로필의 인증 방식을 확인해 주세요.".into()),
+            _ => return Err("errors.authenticationMethod".into()),
         };
 
         let cancel = Cancel::new();
@@ -87,6 +85,11 @@ impl AppState {
             );
         }
         drop(data);
+        let operation = action.name();
+        log::info!(
+            "Session operation started: operation={operation}, sessions={}",
+            sessions.len()
+        );
         let state = Arc::clone(self);
         self.runtime.spawn(async move {
             match action {
@@ -100,12 +103,17 @@ impl AppState {
             for session in sessions {
                 data.jobs.remove(&session.id);
             }
+            log::info!(
+                "Session operation finished: operation={operation}, canceled={}",
+                cancel.requested()
+            );
         });
         Ok(())
     }
 
     pub fn cancel(&self, id: &str) {
         if let Some(job) = self.data().jobs.get(id) {
+            log::info!("Session cancellation requested");
             job.cancel.cancel();
         }
     }
@@ -127,4 +135,14 @@ pub enum Action {
     Check,
     Mfa(Zeroizing<String>),
     Sso,
+}
+
+impl Action {
+    fn name(&self) -> &'static str {
+        match self {
+            Self::Check => "check_identity",
+            Self::Mfa(_) => "renew_mfa",
+            Self::Sso => "sign_in_sso",
+        }
+    }
 }

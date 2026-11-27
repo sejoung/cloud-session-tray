@@ -4,20 +4,19 @@ use std::{collections::BTreeMap, fs, io, path::Path};
 pub(super) type Section = BTreeMap<String, String>;
 pub(super) type Ini = BTreeMap<String, Section>;
 
-pub(super) fn read_file(path: &Path, label: &str) -> Result<(Ini, String), String> {
+pub(super) fn read_file(
+    path: &Path,
+    read_error: &str,
+    ini_error: &str,
+) -> Result<(Ini, String), String> {
     let contents = match fs::read_to_string(path) {
         Ok(contents) => contents,
         Err(err) if err.kind() == io::ErrorKind::NotFound => {
             return Ok((Ini::new(), "missing".into()));
         }
-        Err(_) => {
-            return Err(format!(
-                "{label}을(를) 읽을 수 없습니다. 경로와 권한을 확인해 주세요."
-            ));
-        }
+        Err(_) => return Err(read_error.into()),
     };
-    let sections =
-        parse_ini(&contents).map_err(|()| format!("{label}의 INI 형식을 확인해 주세요."))?;
+    let sections = parse_ini(&contents).map_err(|()| ini_error.to_string())?;
     Ok((
         sections,
         format!("{:x}", Sha256::digest(contents.as_bytes())),

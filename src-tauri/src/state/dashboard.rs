@@ -80,10 +80,7 @@ impl AppState {
                         })
                         .or_else(|| {
                             if check.is_some() && valid_check.is_none() {
-                                Some(
-                                    "AWS 프로필 파일이 변경되었습니다. 상태를 다시 확인해 주세요."
-                                        .into(),
-                                )
+                                Some("errors.filesChanged".into())
                             } else {
                                 None
                             }

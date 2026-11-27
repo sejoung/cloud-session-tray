@@ -1,5 +1,6 @@
 import appIcon from "../../src-tauri/icons/icon.png";
-import { element } from "./html";
+import { element, text } from "./html";
+import { t } from "./i18n";
 
 export function buildShell(root: HTMLElement) {
   root.innerHTML = `
@@ -9,10 +10,10 @@ export function buildShell(root: HTMLElement) {
         <img src="${appIcon}" alt="" width="36" height="36" />
         <span>Cloud Session<br />Tray</span>
       </div>
-      <nav aria-label="메인 메뉴">
-        <button data-page="sessions"><span class="nav-icon session-icon" aria-hidden="true"></span>세션</button>
+      <nav aria-label="${text("shell.navigation")}">
+        <button data-page="sessions"><span class="nav-icon session-icon" aria-hidden="true"></span><span data-nav-label>${text("common.sessions")}</span></button>
         <button data-page="cli"><span class="nav-icon terminal-icon" aria-hidden="true">&gt;_</span>AWS CLI</button>
-        <button data-page="settings"><span class="nav-icon" aria-hidden="true">⚙</span>설정</button>
+        <button data-page="settings"><span class="nav-icon" aria-hidden="true">⚙</span><span data-nav-label>${text("common.settings")}</span></button>
       </nav>
       <button class="rail-status" data-page="cli" id="rail-status"></button>
     </aside>
@@ -27,6 +28,11 @@ export function buildShell(root: HTMLElement) {
 `;
 
   return {
+    translate: () => {
+      element(root, "nav").setAttribute("aria-label", t("shell.navigation"));
+      element(root, '[data-page="sessions"] [data-nav-label]').textContent = t("common.sessions");
+      element(root, '[data-page="settings"] [data-nav-label]').textContent = t("common.settings");
+    },
     content: element<HTMLElement>(root, "#content"),
     railStatus: element<HTMLButtonElement>(root, "#rail-status"),
     editor: element<HTMLDialogElement>(root, "#editor"),

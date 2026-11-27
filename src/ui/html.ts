@@ -1,4 +1,9 @@
-const dateFormat = new Intl.DateTimeFormat("ko-KR", { dateStyle: "medium", timeStyle: "short" });
+import { currentLanguage, localizeMessage, t, type MessageKey, type Values } from "./i18n";
+
+const dateFormats = {
+  en: new Intl.DateTimeFormat("en-US", { dateStyle: "medium", timeStyle: "short" }),
+  ko: new Intl.DateTimeFormat("ko-KR", { dateStyle: "medium", timeStyle: "short" }),
+};
 
 export function escape(value: string): string {
   return value.replace(/[&<>"']/g, (character) => ({
@@ -7,7 +12,11 @@ export function escape(value: string): string {
 }
 
 export function date(value: string | null): string {
-  return value ? dateFormat.format(new Date(value)) : "알 수 없음";
+  return value ? dateFormats[currentLanguage()].format(new Date(value)) : t("common.unknown");
+}
+
+export function text(key: MessageKey, values?: Values): string {
+  return escape(t(key, values));
 }
 
 export function notice(message: string, warning = false): string {
@@ -28,13 +37,13 @@ export function element<T extends Element>(root: ParentNode, selector: string): 
   return found;
 }
 
-export function errorMessage(error: unknown, fallback: string): string {
-  return typeof error === "string" ? error : fallback;
+export function errorMessage(error: unknown, fallback: MessageKey = "errors.unexpected"): string {
+  return typeof error === "string" ? localizeMessage(error, fallback) : t(fallback);
 }
 
 export function reportFormError(form: HTMLFormElement, error: unknown): void {
   const message = element<HTMLElement>(form, ".form-error");
-  message.textContent = errorMessage(error, "입력한 설정을 확인해 주세요.");
+  message.textContent = errorMessage(error, "errors.invalidForm");
   message.hidden = false;
 }
 

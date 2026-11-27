@@ -12,9 +12,7 @@ impl AppState {
         let region = profiles.region(name).map(str::to_owned);
         let (profile, region, authentication) = match profiles.kind(name) {
             Kind::Sso => {
-                let settings = profiles
-                    .sso_settings(name)
-                    .ok_or("Identity Center 설정을 읽을 수 없습니다.")?;
+                let settings = profiles.sso_settings(name).ok_or("errors.ssoConfigRead")?;
                 (name.into(), region, SharedAuthentication::Sso { settings })
             }
             Kind::IamSource => {
@@ -35,9 +33,7 @@ impl AppState {
                 iam_template(&profiles, name, session, region)?
             }
             Kind::Unsupported => {
-                return Err(
-                    "공유할 수 있는 IAM 또는 Identity Center 프로필을 선택해 주세요.".into(),
-                );
+                return Err("errors.shareableProfileRequired".into());
             }
         };
         let shared = SharedProfile {
@@ -125,7 +121,7 @@ fn iam_template(
         ));
     }
     if profiles.kind(name) != Kind::IamSession {
-        return Err("인증 설정이 있는 AWS 프로필을 선택해 주세요.".into());
+        return Err("errors.authenticatedProfileRequired".into());
     }
     let source_hint = profiles.linked_source(name);
     Ok((

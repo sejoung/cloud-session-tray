@@ -1,9 +1,10 @@
+import { t, useLanguage } from "./ui/i18n";
 import type { DesktopApi } from "./desktop-api";
 import { profileName, selectSession, type Dashboard, type Login, type Page, type Preferences, type Profile, type ProfilePreset, type Session } from "./domain";
 import { cliPage, type InstallerState } from "./ui/cli";
 import { confirmRemoval, showOtp } from "./ui/confirmations";
 import { showEditor } from "./ui/editor";
-import { errorMessage, escape } from "./ui/html";
+import { errorMessage, escape, text } from "./ui/html";
 import { showIamRegistration } from "./ui/iam-registration";
 import { sessionsPage } from "./ui/sessions";
 import { readPreferences, settingsPage } from "./ui/settings";
@@ -32,6 +33,7 @@ class Application {
   private pollTimer?: number;
 
   constructor(private readonly root: HTMLElement, private readonly api: DesktopApi) {
+    useLanguage();
     this.ui = buildShell(root);
     this.workflows = new ProfileWorkflows(api, this.ui.workflow, {
       openPreset: (preset) => this.openPreset(preset),
@@ -108,7 +110,7 @@ class Application {
   }
 
   private reportError = (error: unknown): void => {
-    this.showMessage(errorMessage(error, "작업을 완료할 수 없습니다. 다시 시도해 주세요."), true);
+    this.showMessage(errorMessage(error), true);
   };
 
   private pageHtml(state: Dashboard): string {
@@ -130,11 +132,11 @@ class Application {
       else button.removeAttribute("aria-current");
     }
     if (!this.dashboard) {
-      content.innerHTML = '<p class="initial-loading" role="status">Cloud Session Tray 준비 중…</p>';
+      content.innerHTML = `<p class="initial-loading" role="status">${text("app.loading")}</p>`;
       return;
     }
     const { cli, scanning } = this.dashboard;
-    const cliStatus = scanning ? "AWS CLI 확인 중" : cli?.v2 ? `AWS CLI ${escape(cli.version)}` : "AWS CLI 연결 필요";
+    const cliStatus = scanning ? t("app.checkingCli") : cli?.v2 ? `AWS CLI ${escape(cli.version)}` : t("app.cliRequired");
     railStatus.innerHTML = `<span class="dot ${cli?.v2 ? "online" : ""}"></span><span>${cliStatus}</span>`;
 
     const active = content.contains(document.activeElement) ? document.activeElement as HTMLElement : null;
@@ -166,6 +168,7 @@ class Application {
     this.dashboardRequest ??= this.api.dashboard().then((state) => {
       const previous = this.dashboard?.cli;
       this.dashboard = state;
+      if (useLanguage(state.preferences.language)) this.ui.translate();
       if (state.cli?.path !== previous?.path || state.cli?.version !== previous?.version) {
         this.profiles = null;
         if (state.cli?.v2) void this.loadProfiles().catch(() => {});
@@ -209,7 +212,7 @@ class Application {
 
   private requestOtp(session: Session): void {
     if (!this.dashboard?.cli?.mfaSupported) {
-      this.showMessage("IAM MFA 갱신을 지원하는 AWS CLI v2로 업데이트해 주세요.", true);
+      this.showMessage(t("errors.mfaCliRequired"), true);
       return;
     }
     if (session.phase) return;
@@ -236,7 +239,7 @@ class Application {
       this.profiles = profiles;
       if (continueToEditor) await this.openEditor(session, "iamMfa", registration.name);
       this.render();
-      this.showMessage("IAM 프로필을 등록했습니다.");
+      this.showMessage(t("app.iamRegistered"));
     });
   }
 
@@ -246,11 +249,11 @@ class Application {
     if (fromEditor) this.ui.editor.close();
     this.wizardBusy = true;
     this.render();
-    this.showMessage("터미널에서 AWS CLI 마법사를 완료해 주세요.");
+    this.showMessage(t("app.completeSsoWizard"));
     try {
       this.profiles = await this.api.configureSso();
       if (fromEditor) await this.openEditor(session, "sso");
-      else this.showMessage("SSO 마법사를 완료하고 프로필을 다시 읽었습니다.");
+      else this.showMessage(t("app.ssoWizardFinished"));
     } catch (error) {
       await this.loadProfiles().catch(() => {});
       this.reportError(error);
@@ -267,7 +270,7 @@ class Application {
     this.render();
     this.latestCliVersion = await this.api.latestCliVersion(force).catch(() => null);
     this.checkingCliRelease = false;
-    if (force && !this.latestCliVersion) this.showMessage("AWS CLI 최신 버전을 확인하지 못했습니다.", true);
+    if (force && !this.latestCliVersion) this.showMessage(t("app.releaseCheckFailed"), true);
     this.render();
   }
 
@@ -283,7 +286,7 @@ class Application {
         if (this.installerState === "opened" && this.dashboard.cli.version !== previousVersion) this.installerState = "idle";
         await this.loadProfiles();
       } else if (this.installerState === "opened" && command === "rescan_cli") {
-        this.showMessage("AWS CLI를 찾지 못했습니다. 설치 완료 여부를 확인하거나 실행 파일을 선택하세요.", true);
+        this.showMessage(t("app.installerNotDetected"), true);
       }
     } finally {
       this.cliBusy = false;
@@ -308,14 +311,15 @@ class Application {
 
   private async savePreferences(form: HTMLFormElement): Promise<void> {
     const preferences = readPreferences(form);
-    if (preferences.notify && !await this.api.allowNotifications()) {
-      this.showMessage("시스템 알림 권한을 허용한 뒤 다시 저장해 주세요.", true);
+    if (preferences.notify && !this.dashboard?.preferences.notify && !await this.api.allowNotifications()) {
+      this.showMessage(t("app.notificationPermission"), true);
       return;
     }
     await this.api.savePreferences(preferences);
     this.preferencesDraft = null;
+    await this.dashboardRequest?.catch(() => {});
     await this.refresh();
-    this.showMessage("알림 설정을 저장했습니다.");
+    this.showMessage(t("app.preferencesSaved"));
   }
 
   private async perform(action: string): Promise<void> {
@@ -331,6 +335,7 @@ class Application {
       case "check": if (session) await this.api.session("check_session", session.id); break;
       case "cancel": if (session) await this.api.session("cancel_session", session.id); break;
       case "install": await this.install(); return;
+      case "open-logs": await this.api.openLogFolder(); return;
       case "check-cli-release": await this.checkCliRelease(true); return;
       case "rescan": await this.checkCli("rescan_cli"); return;
       case "choose": await this.checkCli("choose_cli"); return;

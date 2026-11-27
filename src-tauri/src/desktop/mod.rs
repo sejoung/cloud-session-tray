@@ -2,6 +2,8 @@ mod cli_release;
 mod commands;
 mod dialogs;
 mod installer;
+mod localization;
+mod logging;
 mod profile_tools;
 mod tray;
 
@@ -31,6 +33,7 @@ pub fn run() {
             commands::save_session,
             commands::remove_session,
             commands::save_preferences,
+            commands::set_system_language,
             commands::check_session,
             commands::renew_mfa,
             commands::renew_sso,
@@ -38,6 +41,7 @@ pub fn run() {
             commands::open_docs,
             cli_release::latest_cli_version,
             installer::install_cli,
+            logging::open_log_folder,
             profile_tools::tool_connection,
             profile_tools::test_connection,
             profile_tools::prepare_shared_profile,
@@ -46,6 +50,11 @@ pub fn run() {
             profile_tools::import_shared_sso,
         ])
         .setup(|app| {
+            logging::initialize(app.handle());
+            log::info!(
+                "Cloud Session Tray started: version={}",
+                app.package_info().version
+            );
             let state = Arc::new(AppState::new(
                 app.path().home_dir()?,
                 app.path().app_config_dir()?,
@@ -66,14 +75,20 @@ pub fn run() {
                     tick.tick().await;
                     for (id, label, expiry) in state.notifications() {
                         let time = expiry.at.with_timezone(&chrono::Local).format("%H:%M");
+                        let language = state.language();
                         if app_handle
                             .notification()
                             .builder()
-                            .title("AWS 세션 만료 예정")
-                            .body(format!("{label} 세션이 {time}에 만료됩니다."))
+                            .title(localization::text(language, "native.expiryTitle"))
+                            .body(localization::expiry_body(
+                                language,
+                                &label,
+                                &time.to_string(),
+                            ))
                             .show()
                             .is_ok()
                         {
+                            log::info!("Session expiration notification sent");
                             state.mark_notified(&id, &expiry);
                         }
                     }

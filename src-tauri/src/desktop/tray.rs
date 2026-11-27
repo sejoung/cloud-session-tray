@@ -1,3 +1,4 @@
+use super::localization::{error_key, text};
 use crate::{
     model::Login,
     state::{Action, AppState},
@@ -38,10 +39,11 @@ pub(super) fn show_window(app: &AppHandle) {
 
 fn tray_menu(app: &AppHandle, state: &AppState) -> tauri::Result<Menu<tauri::Wry>> {
     let menu = Menu::new(app)?;
+    let language = state.language();
     menu.append(&MenuItem::with_id(
         app,
         "open",
-        "Cloud Session Tray 열기",
+        text(language, "native.open"),
         true,
         None::<&str>,
     )?)?;
@@ -50,14 +52,14 @@ fn tray_menu(app: &AppHandle, state: &AppState) -> tauri::Result<Menu<tauri::Wry
         let check = MenuItem::with_id(
             app,
             format!("check:{}", session.id),
-            "상태 확인",
+            text(language, "common.checkStatus"),
             true,
             None::<&str>,
         )?;
         let renew = MenuItem::with_id(
             app,
             format!("renew:{}", session.id),
-            "갱신",
+            text(language, "common.renew"),
             true,
             None::<&str>,
         )?;
@@ -66,7 +68,13 @@ fn tray_menu(app: &AppHandle, state: &AppState) -> tauri::Result<Menu<tauri::Wry
         menu.append(&Submenu::with_items(app, title, true, &[&check, &renew])?)?;
     }
     menu.append(&PredefinedMenuItem::separator(app)?)?;
-    menu.append(&MenuItem::with_id(app, "quit", "종료", true, None::<&str>)?)?;
+    menu.append(&MenuItem::with_id(
+        app,
+        "quit",
+        text(language, "native.quit"),
+        true,
+        None::<&str>,
+    )?)?;
     Ok(menu)
 }
 
@@ -88,6 +96,7 @@ fn tray_action(app: &AppHandle, menu_id: &str) {
         return;
     }
     if menu_id == "quit" {
+        log::info!("Quit requested from the system tray");
         app.exit(0);
         return;
     }
@@ -113,6 +122,7 @@ fn tray_action(app: &AppHandle, menu_id: &str) {
         _ => return,
     };
     if let Err(error) = result {
+        log::warn!("Tray session request failed: code={}", error_key(&error));
         let _ = app.emit_to("main", "session-error", error);
     }
 }

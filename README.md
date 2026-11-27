@@ -18,27 +18,31 @@ Cloud Session Tray lets you check and renew AWS CLI sessions from the macOS menu
 
 ## Getting started
 
-The app interface is in Korean. The labels below match what you see in the app.
+The app follows your system language and supports English and Korean. Choose a display language in **Settings**.
 
-1. Open **AWS CLI** to check the executable and version. **공식 업데이트 열기** (Open official update) appears when a newer version is available. The screen checks automatically at most once every 24 hours. Use **업데이트 확인** (Check for updates) to check immediately, **다시 탐색** (Scan again) after installing, or **실행 파일 선택** (Select executable) for a custom install location.
-2. For a first IAM setup, use **세션 → IAM 액세스 키 등록** (Sessions → Register IAM access keys). Pick an optional region from the list. The app saves JSON as the default CLI output format for the new source profile and opens MFA setup with that profile selected. Use **프로필 연결** (Connect profile) or **프로필 추가** (Add profile) for existing profiles.
-   - **IAM MFA** starts with your preferred local source profile and suggests a separate destination for temporary credentials. Use **MFA 장치 찾기** (Find MFA devices) or enter the device ARN or serial. Device lookup requires `iam:ListMFADevices`.
-   - **IAM Identity Center** uses a local SSO profile and checks its existing login. To create one, open **SSO 마법사 열기** (Open SSO wizard) with your organization's start or issuer URL and SSO region.
-3. Click **갱신** (Renew) and enter an MFA code or finish the SSO login in your browser. **상태 확인** (Check status) shows the account, caller ARN and last check time. Enable expiration notifications in **설정** (Settings) for IAM MFA sessions whose expiration is known.
+1. Open **AWS CLI** to check the executable and version. **Open official update** appears when a newer version is available. The screen checks automatically at most once every 24 hours. Use **Check for updates** to check immediately, **Scan again** after installing, or **Select executable** for a custom install location.
+2. For a first IAM setup, use **Sessions → Register IAM access keys**. Pick an optional region from the list. The app saves JSON as the default CLI output format for the new source profile and opens MFA setup with that profile selected. Use **Connect profile** or **Add profile** for existing profiles.
+   - **IAM MFA** starts with your preferred local source profile and suggests a separate destination for temporary credentials. Use **Find MFA devices** or enter the device ARN or serial. Device lookup requires `iam:ListMFADevices`.
+   - **IAM Identity Center** uses a local SSO profile and checks its existing login. To create one, open **Open SSO wizard** with your organization's start or issuer URL and SSO region.
+3. Click **Renew** and enter an MFA code or finish the SSO login in your browser. **Check status** shows the account, caller ARN and last check time. Enable expiration notifications in **Settings** for IAM MFA sessions whose expiration is known.
 
 IAM MFA requires AWS CLI v2 with `aws configure mfa-login`. The app detects whether that command is available. [Install AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html) · [IAM MFA login](https://docs.aws.amazon.com/cli/latest/reference/configure/mfa-login.html) · [Identity Center setup](https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-sso.html)
 
 ## Connect existing profiles and tools
 
-- Under **AWS CLI → 로컬 프로필** (Local profiles), see which profiles are defined in `config` and `credentials`. Use **세션에 연결** (Link to a session) to renew the temporary profile your tools already use. For example, if your long-term key lives in `default` and your kubeconfig uses `tech`, choose `default` as the source and `tech` as the destination.
+- Under **AWS CLI → Local profiles**, see which profiles are defined in `config` and `credentials`. Use **Link to session** to renew the temporary profile your tools already use. For example, if your long-term key lives in `default` and your kubeconfig uses `tech`, choose `default` as the source and `tech` as the destination.
 - The AWS CLI writes temporary keys and the session token to the destination profile in the shared credentials file. If that profile has no region, the app uses the initial destination region or the source region. The **AWS CLI** screen shows the effective file paths, including overrides from `AWS_CONFIG_FILE` and `AWS_SHARED_CREDENTIALS_FILE`.
-- In **도구 연결** (Connect tools), copy the shell settings for Bash, Zsh, or PowerShell. Enter an EKS cluster name to generate an `aws eks update-kubeconfig` command that uses the same profile. An existing kubeconfig using that profile can reuse it after renewal. [AWS shared file format](https://docs.aws.amazon.com/sdkref/latest/guide/file-format.html) · [EKS kubeconfig](https://docs.aws.amazon.com/eks/latest/userguide/create-kubeconfig.html)
+- In **Connect tools**, copy the shell settings for Bash, Zsh, or PowerShell. Enter an EKS cluster name to generate an `aws eks update-kubeconfig` command that uses the same profile. An existing kubeconfig using that profile can reuse it after renewal. [AWS shared file format](https://docs.aws.amazon.com/sdkref/latest/guide/file-format.html) · [EKS kubeconfig](https://docs.aws.amazon.com/eks/latest/userguide/create-kubeconfig.html)
 
 ## Share a profile setup
 
-Open **공유** (Share) to copy instructions or export a setup file with the destination profile and a task note. An IAM setup can include a source profile hint, region, and session duration. An Identity Center setup can include the sign-in URL, SSO region, account, and role. Shared files omit AWS keys, session tokens, and MFA codes.
+Open **Share** to copy instructions or export a setup file with the destination profile and a task note. An IAM setup can include a source profile hint, region, and session duration. An Identity Center setup can include the sign-in URL, SSO region, account, and role. Shared files omit AWS keys, session tokens, and MFA codes.
 
-Teammates can preview a setup with **공유 파일 가져오기** (Import setup). Each teammate selects their own local IAM source and MFA device or signs in through Identity Center.
+Teammates can preview a setup with **Import share file**. Each teammate selects their own local IAM source and MFA device or signs in through Identity Center.
+
+## Diagnostics
+
+Open **Settings → Diagnostics → Open log folder** to view the local English logs. Startup, CLI discovery, setup, and session operations record outcomes and error codes. Log files rotate at 1 MiB.
 
 ## Development
 
@@ -58,7 +62,7 @@ npm run tauri build
 
 The lint suite limits source, tests, and config files to 400 lines each. It runs ESLint, dependency-cruiser, jscpd, rustfmt, and Clippy. Dependency-cruiser checks frontend dependencies, and the Rust test suite checks Rust module boundaries and cycles. Tests use temporary files and test backends in place of live AWS credentials.
 
-Install Chromium for Playwright to run the browser E2E tests and refresh the manual screenshots. The capture command writes six app screenshots to `docs/assets` using example data.
+Install Chromium for Playwright to run the browser E2E tests and refresh the manual screenshots. The capture command writes six screenshots in each language to `docs/assets` using example data. The app and native UI share the translation keys in `locales/en.json` and `locales/ko.json`.
 
 ```sh
 npx playwright install chromium

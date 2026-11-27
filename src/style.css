@@ -299,8 +299,9 @@ fieldset { padding: 0; border: 0; margin: 0; min-width: 0; }
 }
 
 .mfa-lookup { display: grid; gap: 7px; margin: -3px 0 12px; }
-.mfa-lookup .button { justify-self: start; color: #2e469d; background: var(--brand-faint); border-color: #8195dc; }
-.mfa-lookup .button:hover:not(:disabled) { background: #e2e9ff; border-color: var(--brand); }
+.mfa-lookup .button, .button.sso-wizard { justify-self: start; color: #2e469d; background: var(--brand-faint); border-color: #8195dc; }
+.mfa-lookup .button:hover:not(:disabled), .button.sso-wizard:hover:not(:disabled) { background: #e2e9ff; border-color: var(--brand); }
+.sso-wizard { margin-bottom: 10px; }
 .mfa-lookup .muted { font-size: 12px; }
 
 .registration-link { margin: -6px 0 11px; padding-left: 0; }

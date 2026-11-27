@@ -77,7 +77,7 @@ pub fn valid_shared_name(name: &str) -> bool {
 impl SharedProfile {
     pub fn validate(&self) -> Result<(), String> {
         if self.version != 1 {
-            return Err("지원하지 않는 CST 공유 파일 버전입니다.".into());
+            return Err("errors.unsupportedShareVersion".into());
         }
         if !valid_shared_name(&self.profile)
             || self.label.trim().is_empty()
@@ -86,7 +86,7 @@ impl SharedProfile {
             || !valid_task(&self.task)
             || self.region.as_deref().is_some_and(|r| !valid_aws_region(r))
         {
-            return Err("공유 파일의 이름, 작업 메모 또는 리전 값을 확인해 주세요.".into());
+            return Err("errors.invalidShareFields".into());
         }
         match &self.authentication {
             SharedAuthentication::IamMfa {
@@ -98,7 +98,7 @@ impl SharedProfile {
                     .is_some_and(|name| !valid_shared_name(name))
                     || duration.is_some_and(|seconds| !(900..=129_600).contains(&seconds))
                 {
-                    return Err("공유 파일의 IAM 프로필 설정을 확인해 주세요.".into());
+                    return Err("errors.invalidSharedIam".into());
                 }
                 Ok(())
             }
@@ -135,9 +135,7 @@ impl SsoSettings {
                 .as_ref()
                 .is_some_and(|session| !session.valid())
         {
-            return Err(
-                "공유 파일의 Identity Center URL, 계정 또는 역할 설정을 확인해 주세요.".into(),
-            );
+            return Err("errors.invalidSharedSso".into());
         }
         Ok(())
     }

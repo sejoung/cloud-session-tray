@@ -1,24 +1,43 @@
+import { localizeMessage, t } from "./i18n";
 import type { Dashboard, Preferences } from "../domain";
-import { header, notice } from "./html";
+import { header, notice, text } from "./html";
 
 export function settingsPage(state: Dashboard, preferencesDraft: Preferences | null): string {
   const preferences = preferencesDraft ?? state.preferences;
-  return header("설정", "AWS 세션 만료 알림을 관리하세요.")
-    + (state.settingsError ? notice(state.settingsError, true) : "")
-    + `<section class="card section-card">
-      <h2>만료 알림</h2>
-      <p class="muted">만료 시각을 확인한 IAM MFA 세션에 알림을 보냅니다.</p>
-      <form id="preferences" class="settings-form">
-        <label class="check-label"><input type="checkbox" name="notify" ${preferences.notify ? "checked" : ""} /> 만료 전에 알림 받기</label>
-        <label class="field short-field">만료 전 알림 (분)
+  return header(t("common.settings"), t("settings.description"))
+    + (state.settingsError ? notice(localizeMessage(state.settingsError), true) : "")
+    + `<form id="preferences" class="settings-form">
+      <section class="card section-card">
+        <label class="field short-field">${text("settings.language")}
+          <select name="language">
+            <option value="">${text("settings.system")}</option>
+            <option value="en" ${preferences.language === "en" ? "selected" : ""}>${text("settings.english")}</option>
+            <option value="ko" ${preferences.language === "ko" ? "selected" : ""}>${text("settings.korean")}</option>
+          </select>
+        </label>
+      </section>
+      <section class="card section-card">
+      <h2>${text("settings.notifications")}</h2>
+      <p class="muted">${text("settings.notificationHelp")}</p>
+        <label class="check-label"><input type="checkbox" name="notify" ${preferences.notify ? "checked" : ""} /> ${text("settings.notifyBefore")}</label>
+        <label class="field short-field">${text("settings.notifyMinutes")}
           <input type="number" min="1" max="1440" step="1" required name="notifyMinutes" value="${preferences.notifyMinutes}" />
         </label>
-        <div class="actions"><button class="button primary" type="submit">저장</button></div>
-      </form>
+        <div class="actions"><button class="button primary" type="submit">${text("common.save")}</button></div>
+      </section>
+    </form>
+    <section class="card section-card">
+      <h2>${text("settings.diagnostics")}</h2>
+      <div class="actions"><button class="button" data-action="open-logs">${text("settings.logs")}</button></div>
     </section>`;
 }
 
 export function readPreferences(form: HTMLFormElement): Preferences {
   const data = new FormData(form);
-  return { notify: data.has("notify"), notifyMinutes: Number(data.get("notifyMinutes")) };
+  const language = data.get("language");
+  return {
+    notify: data.has("notify"),
+    notifyMinutes: Number(data.get("notifyMinutes")),
+    language: language === "en" || language === "ko" ? language : null,
+  };
 }

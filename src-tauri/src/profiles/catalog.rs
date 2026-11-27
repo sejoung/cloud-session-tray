@@ -188,7 +188,7 @@ impl Profiles {
         validate_name(login.profile())?;
         match login {
             Login::Sso { profile } if self.kind(profile) != Kind::Sso => {
-                Err("완전한 IAM Identity Center 설정이 있는 프로필을 선택해 주세요.".into())
+                Err("errors.invalidSsoProfile".into())
             }
             Login::Sso { .. } => Ok(()),
             Login::IamMfa(MfaLogin {
@@ -199,23 +199,23 @@ impl Profiles {
                 region,
             }) => {
                 if source == target {
-                    return Err("원본과 갱신 대상에 서로 다른 프로필을 지정해 주세요.".into());
+                    return Err("errors.sameSourceAndTarget".into());
                 }
                 self.validate_iam_source(source)?;
                 if !self.target_allowed(target) {
-                    return Err("장기 키, SSO, 역할 또는 외부 자격 증명 설정이 없는 별도 프로필을 선택해 주세요.".into());
+                    return Err("errors.unsafeDestination".into());
                 }
                 if !valid_mfa_device(device) {
-                    return Err("MFA 장치 ARN 또는 시리얼을 확인해 주세요.".into());
+                    return Err("errors.invalidMfaDevice".into());
                 }
                 if region
                     .as_deref()
                     .is_some_and(|region| !valid_aws_region(region))
                 {
-                    return Err("대상 프로필의 리전 이름을 확인해 주세요.".into());
+                    return Err("errors.invalidTargetRegion".into());
                 }
                 if duration.is_some_and(|seconds| !(900..=129_600).contains(&seconds)) {
-                    return Err("세션 기간은 900~129600초 사이로 입력해 주세요.".into());
+                    return Err("errors.invalidDuration".into());
                 }
                 Ok(())
             }
@@ -225,7 +225,7 @@ impl Profiles {
     pub fn validate_iam_source(&self, source: &str) -> Result<(), String> {
         validate_name(source)?;
         if self.kind(source) != Kind::IamSource {
-            return Err("원본 프로필에 로컬 IAM 장기 키를 설정해 주세요.".into());
+            return Err("errors.sourceKeysRequired".into());
         }
         Ok(())
     }
@@ -238,10 +238,10 @@ impl Profiles {
             name.into()
         };
         if !shell_words::split(&section_name).is_ok_and(|words| words == [name]) {
-            return Err("AWS 설정 파일에 저장할 수 있는 프로필 이름을 입력해 주세요.".into());
+            return Err("errors.invalidConfigProfileName".into());
         }
         if self.kind(name) != Kind::Unconfigured {
-            return Err("이미 인증 설정이 있는 프로필입니다. 다른 이름을 지정해 주세요.".into());
+            return Err("errors.credentialsAlreadyConfigured".into());
         }
         self.ensure_history_disabled(name)
     }
@@ -258,7 +258,7 @@ impl Profiles {
             })
             .is_some_and(|value| value == "enabled")
         {
-            return Err("이 프로필의 AWS CLI 기록이 켜져 있습니다. cli_history를 disabled로 설정한 뒤 다시 시도해 주세요.".into());
+            return Err("errors.cliHistoryEnabled".into());
         }
         Ok(())
     }
@@ -314,7 +314,7 @@ pub(super) fn validate_name(name: &str) -> Result<(), String> {
         || name != name.trim()
         || name.chars().any(|char| char.is_control() || char == ']')
     {
-        return Err("AWS 프로필 이름을 확인해 주세요.".into());
+        return Err("errors.invalidProfileName".into());
     }
     Ok(())
 }

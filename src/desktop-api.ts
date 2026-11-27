@@ -1,4 +1,4 @@
-import type { ConnectionCheck, Dashboard, IamRegistration, Preferences, Profile, SessionDraft, SharedProfile, ToolConnection } from "./domain";
+import type { ConnectionCheck, Dashboard, IamRegistration, Language, Preferences, Profile, SessionDraft, SharedProfile, ToolConnection } from "./domain";
 
 type CliCommand = "rescan_cli" | "choose_cli" | "reset_cli";
 type SessionCommand = "renew_sso" | "check_session" | "cancel_session" | "remove_session";
@@ -21,6 +21,8 @@ export interface DesktopApi {
   saveSession(draft: SessionDraft): Promise<string>;
   renewMfa(id: string, otp: string): Promise<void>;
   savePreferences(preferences: Preferences): Promise<void>;
+  setSystemLanguage(language: Language): Promise<void>;
+  openLogFolder(): Promise<void>;
   latestCliVersion(force: boolean): Promise<string | null>;
   installCli(): Promise<void>;
   openDocs(topic: string): Promise<void>;

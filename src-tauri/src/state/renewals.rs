@@ -19,7 +19,7 @@ pub(super) async fn renew_mfa(
     let target = &login.target;
     let guard = tokio::select! {
         _ = cancel.wait() => {
-            state.activity(&session.id, Issue::Cancelled.text().into());
+            state.activity(&session.id, Issue::Cancelled.key().into());
             return;
         }
         guard = state.aws_files.lock() => guard,
@@ -32,6 +32,7 @@ pub(super) async fn renew_mfa(
     })() {
         Ok(profiles) => profiles,
         Err(error) => {
+            log::warn!("IAM MFA renewal preflight failed: code={error}");
             state.activity(&session.id, error);
             return;
         }
@@ -92,7 +93,8 @@ pub(super) async fn renew_mfa(
                 settings.expiries.insert(session.id.clone(), expiry);
             }
         }) {
-            data.activity.insert(session.id.clone(), error);
+            log::warn!("Could not persist the IAM MFA renewal: code={error}");
+            data.activity.insert(session.id.clone(), vec![error]);
             return;
         }
     }
@@ -106,21 +108,41 @@ pub(super) async fn renew_mfa(
             cancel.clone()
         };
         let status = verify(state, cli, session, &verification_cancel).await;
-        let message = match result {
-            Ok(_) if stored && status == Some(Status::Available) => "IAM MFA 세션을 갱신했습니다.",
-            Ok(_) if stored => "IAM MFA 세션을 발급했습니다. STS 신원을 확인하지 못했습니다.",
-            Ok(_) => "MFA 발급은 완료됐지만 대상 프로필의 자격 증명을 확인할 수 없습니다.",
-            Err(issue) => issue.text(),
-        };
-        let activity = if region_result.is_err() {
-            format!(
-                "{message} 대상 프로필에 리전을 기록할 수 없습니다. 도구 연결에서 리전을 확인해 주세요."
-            )
-        } else {
-            message.into()
-        };
-        state.activity(&session.id, activity);
+        let messages = mfa_activity(result.map(|_| ()), stored, status, region_result.is_err());
+        state.data().activity.insert(session.id.clone(), messages);
     }
+}
+
+fn mfa_activity(
+    renewal: Result<(), Issue>,
+    stored: bool,
+    status: Option<Status>,
+    region_error: bool,
+) -> Vec<String> {
+    let message = match renewal {
+        Ok(()) if stored && status == Some(Status::Available) => {
+            log::info!("IAM MFA session renewed");
+            "messages.mfaRenewed"
+        }
+        Ok(()) if stored => {
+            log::warn!("IAM MFA credentials issued without verified STS identity");
+            "messages.mfaIdentityUnverified"
+        }
+        Ok(()) => {
+            log::warn!("IAM MFA destination credentials could not be verified");
+            "messages.mfaCredentialsUnverified"
+        }
+        Err(issue) => {
+            log::warn!("IAM MFA renewal failed: code={}", issue.key());
+            issue.key()
+        }
+    };
+    let mut messages = vec![message.into()];
+    if region_error {
+        log::warn!("Could not write the destination region after IAM MFA renewal");
+        messages.push("errors.targetRegionWrite".into());
+    }
+    messages
 }
 
 pub(super) async fn renew_sso(state: &AppState, cli: &Cli, sessions: &[Session], cancel: &Cancel) {
@@ -131,6 +153,7 @@ pub(super) async fn renew_sso(state: &AppState, cli: &Cli, sessions: &[Session],
         profiles.ensure_history_disabled(profile)
     });
     if let Err(error) = preflight {
+        log::warn!("Identity Center sign-in preflight failed: code={error}");
         for session in sessions {
             state.activity(&session.id, error.clone());
         }
@@ -138,22 +161,24 @@ pub(super) async fn renew_sso(state: &AppState, cli: &Cli, sessions: &[Session],
     }
     match cli::sso(cli, &state.files, profile, cancel).await {
         Ok(()) => {
+            log::info!("Identity Center sign-in completed");
             for session in sessions {
                 state.phase(&session.id, Phase::Checking);
             }
             for session in sessions {
                 let status = verify(state, cli, session, cancel).await;
                 let message = if status == Some(Status::Available) {
-                    "Identity Center에 로그인했습니다."
+                    "messages.ssoSignedIn"
                 } else {
-                    "Identity Center 로그인은 완료됐습니다. STS 신원을 확인하지 못했습니다."
+                    "messages.ssoIdentityUnverified"
                 };
                 state.activity(&session.id, message.into());
             }
         }
         Err(issue) => {
+            log::warn!("Identity Center sign-in failed: code={}", issue.key());
             for session in sessions {
-                state.activity(&session.id, issue.text().into());
+                state.activity(&session.id, issue.key().into());
             }
         }
     }

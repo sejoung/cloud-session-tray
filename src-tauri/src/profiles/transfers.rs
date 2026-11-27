@@ -41,16 +41,14 @@ impl Files {
         profile.validate()?;
         validate_name(&profile.profile)?;
         let SharedAuthentication::Sso { settings } = &profile.authentication else {
-            return Err("Identity Center 공유 프로필을 선택해 주세요.".into());
+            return Err("errors.ssoShareRequired".into());
         };
         let local = self.read()?;
         if local.name_exists(&profile.profile) {
             if local.matches_sso(profile, settings) {
                 return Ok(());
             }
-            return Err(
-                "이름이 같은 AWS 프로필이 있습니다. 가져올 프로필 이름을 바꿔 주세요.".into(),
-            );
+            return Err("errors.sharedProfileNameConflict".into());
         }
         let entry = sso_entry(&local, profile, settings);
         self.append_config(&local, &entry)

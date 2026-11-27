@@ -23,7 +23,7 @@ export function mockSession(id: string, label: string, login: Login): Session {
 export function backend(state: Partial<Dashboard> = {}, profiles: Profile[] = []) {
   const dashboard: Dashboard = {
     cli, preferredPath: null, files: { config: "/test/config", credentials: "/test/credentials" },
-    sessions: [], preferences: { notify: false, notifyMinutes: 10 },
+    sessions: [], preferences: { notify: false, notifyMinutes: 10, language: "ko" },
     scanning: false, wizard: false, profilesError: null, settingsError: null, ...state,
   };
   const listeners = new Map<string, (value: string) => void>();
@@ -56,6 +56,8 @@ export function backend(state: Partial<Dashboard> = {}, profiles: Profile[] = []
     savePreferences: vi.fn<DesktopApi["savePreferences"]>(async (preferences) => {
       dashboard.preferences = preferences;
     }),
+    setSystemLanguage: vi.fn<DesktopApi["setSystemLanguage"]>(async () => {}),
+    openLogFolder: vi.fn<DesktopApi["openLogFolder"]>(async () => {}),
     latestCliVersion: vi.fn<DesktopApi["latestCliVersion"]>(async () => cli.version),
     installCli: vi.fn<DesktopApi["installCli"]>(async () => {}),
     openDocs: vi.fn<DesktopApi["openDocs"]>(async () => {}),

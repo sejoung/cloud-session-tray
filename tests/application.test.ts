@@ -298,7 +298,7 @@ describe("Desktop controls", () => {
     expect(api.savePreferences).not.toHaveBeenCalled();
 
     submit("#preferences");
-    await vi.waitFor(() => expect(api.savePreferences).toHaveBeenCalledWith({ notify: true, notifyMinutes: 10 }));
+    await vi.waitFor(() => expect(api.savePreferences).toHaveBeenCalledWith({ notify: true, notifyMinutes: 10, language: "ko" }));
   });
 });
 
